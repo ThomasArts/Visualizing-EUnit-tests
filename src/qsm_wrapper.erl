@@ -6,17 +6,17 @@
 -module(qsm_wrapper).
 -compile(export_all).
 
-run(Positive,Negative) ->
+-define(STATECHUM,"/home/palas/erasmus/statechum.jar").
+
+ 
+run(StateChum,Positive,Negative) ->
   %% io:format("POS: ~p\nNEG: ~p\n",[Positive,Negative]),
   File = write_qsm_file(Positive,Negative),
-  Cmd = "java -jar /home/palas/erasmus/statechum.jar " ++ File,
-  file:delete("./temp/dotOutput.dot"),
-  %% io:format("CMD: ~s\n",[Cmd]),
-  _Res = os:cmd(Cmd),
-  %% io:format("Res: ~s\n", [_Res]),
-  Graph = parse_qsm_res(),
-  file:delete(File),
-  Graph.
+  _Res = os:cmd("java -jar " ++ StateChum ++ " " ++ File),
+  Graph = parse_qsm_res().
+
+run(Pos,Neg) ->
+  run(?STATECHUM,Pos,Neg).
 
 parse_qsm_res() ->
   ResFile = "./temp/dotOutput.dot",
@@ -59,7 +59,7 @@ write_qsm_file(Positive,Negative) ->
 data_case(_Pre,[]) ->
   "";
 data_case(Pre,[Case | Cases]) ->
-  Pre ++ lists:flatten(lists:map(fun(Label) -> atom_to_list(Label) ++ " " end,Case))
+  Pre ++ lists:flatten(lists:map(fun(Label) -> lists:flatten(io_lib:format("~p",[Label])) ++ " " end,Case))
     ++ "\n" ++ data_case(Pre,Cases).
 
 
