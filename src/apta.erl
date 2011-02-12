@@ -9,8 +9,8 @@
 
 %% API
 -export([generateApta/1]).
--include("apta.hrl").
--include("automata.hrl").
+-include("../include/apta.hrl").
+-include("../include/automata.hrl").
 %%====================================================================
 %% API
 %%====================================================================

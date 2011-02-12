@@ -6,7 +6,7 @@
 %%% Created : 7 Nov 2010
 %%%-------------------------------------------------------------------
 -module(merge).
--include("automata.hrl").
+-include("../include/automata.hrl").
 
 %% API
 -export([merge/3, number_of_merges/3]).

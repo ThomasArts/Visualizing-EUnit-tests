@@ -7,7 +7,7 @@
 %%%-------------------------------------------------------------------
 
 -module(bluefringe).
--include("automata.hrl").
+-include("../include/automata.hrl").
 
 %% API
 -export([qsm/2, iterate/2, iterate_all/2]).
