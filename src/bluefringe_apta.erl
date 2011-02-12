@@ -5,7 +5,7 @@
 %%%
 %%% Created : 26 Oct 2010
 %%%-------------------------------------------------------------------
--module(apta).
+-module(bluefringe_apta).
 
 %% API
 -export([generateApta/1]).

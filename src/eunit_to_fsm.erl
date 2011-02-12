@@ -1,11 +1,11 @@
 %%%-------------------------------------------------------------------
-%%% File    : tool.erl
+%%% File    : eunit_to_fsm.erl
 %%% Author  : Pablo Lamela <lamela@student.chalmers.se>
 %%% Description : Module to collect the main functions of the library
 %%%
 %%% Created : 11 Feb 2011 by Pablo Lamela
 %%%-------------------------------------------------------------------
--module(tool).
+-module(eunit_to_fsm).
 
 %% API
 -export([erun/1,erun/2, qsm/1, visualize/1]).

@@ -10,7 +10,11 @@
 -include("../include/automata.hrl").
 
 %% API
--export([qsm/2, iterate/2, iterate_all/2]).
+-export([dot/2,qsm/2]).
+-import(bluefringe_merge,[merge/3,number_of_merges/3]).
+
+dot(Positive,Negative) ->
+  bluefringe_dot:visualize(qsm(Positive,Negative)).
 
 %%====================================================================
 %% API
@@ -21,7 +25,7 @@
 %%--------------------------------------------------------------------
 
 qsm(PT, NT) ->
-    Aut = apta:generateApta({PT, NT}),
+    Aut = bluefringe_apta:generateApta({PT, NT}),
     remove_floating_states(iterate_all({Aut, [Aut#fa.iSt]}, {PT, NT})).
 
 %%--------------------------------------------------------------------
@@ -85,7 +89,7 @@ advanceTrace(Aut, {State, [Head|Tail]}) ->
 
 make_check_if_compatible(Aut, Traces) ->
     fun ({St1, St2}) ->
-        case (catch merge:merge(Aut, St1, St2)) of
+        case (catch merge(Aut, St1, St2)) of
             incompatible -> incompatible;
             NewAut -> checkAutomata(NewAut, Traces)
         end
@@ -158,7 +162,7 @@ compare_scores(_, _) -> false.
 compute_scores(Automata, Red, Blue) ->
     lists:sort(fun compare_scores/2,
         lists:map(fun ({St1, St2}) ->
-	    {merge:number_of_merges(Automata, St1, St2), {St1, St2}} end,
+	    {number_of_merges(Automata, St1, St2), {St1, St2}} end,
 	      [{X, Y} || X <- Red, Y <- Blue])).
 
 getNext([]) -> clean;
@@ -179,7 +183,7 @@ getNexts(_, _Others, List) -> {List}.
 mixSink(Auto) ->
     case Auto#fa.fSt of
 	[A, B|Tail] ->
-	    NA = merge:merge(Auto, A, B),
+	    NA = merge(Auto, A, B),
 	    mixSink(NA#fa{fSt = [A|Tail]});
 	_ -> Auto
     end.

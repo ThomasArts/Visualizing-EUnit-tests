@@ -6,12 +6,14 @@
 %%% Created : 09 Feb 2010
 %%%-------------------------------------------------------------------
 
--module(dot).
+-module(bluefringe_dot).
 
 %% API
 -export([visualize/1]).
 
 visualize({fa,States,_Tokens,InitState,Transitions,FailingStates}) ->
+    Name = "eunit_fsm",
+    Type = "jpeg",
     Dot = lists:flatten(["digraph G {\n",
 			 translate_initstate(InitState),
 			 lists:map(fun translate_failingstate/1, FailingStates),
@@ -20,11 +22,20 @@ visualize({fa,States,_Tokens,InitState,Transitions,FailingStates}) ->
 			 lists:map(fun translate_transition/1,
 				   mix_transitions(Transitions)),
 			 "}\n"]),
-    file:write_file("qsm-output.dot", list_to_binary(Dot)),
-    os:cmd("dot -Tps qsm-output.dot -o dot-output.ps"),
-    file:delete("qsm-output.dot"),
-    os:cmd("evince dot-output.ps"),
-    file:delete("dot-output.ps").
+    file:write_file(Name++".dot", list_to_binary(Dot)),
+    oscmd("GRAPHVIZ","dot","-T"++Type++" "++Name++".dot -o"++Name++"."++Type),
+    oscmd("VIEWER","open",Name++"."++Type).
+
+oscmd(EnvVar,Default,Args) ->
+    CmdName = case os:getenv(EnvVar) of
+		  false ->
+		      Default;
+		  S ->
+		      S
+	      end,
+    Cmd = CmdName ++ " " ++ Args,
+    io:format("Running ~s (set ~s to change)~n",[Cmd,EnvVar]),
+    io:format(os:cmd(Cmd)).
 
 %% Internal
 

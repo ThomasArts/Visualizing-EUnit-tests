@@ -5,7 +5,7 @@
 %%%
 %%% Created : 7 Nov 2010
 %%%-------------------------------------------------------------------
--module(merge).
+-module(bluefringe_merge).
 -include("../include/automata.hrl").
 
 %% API
