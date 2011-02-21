@@ -40,7 +40,6 @@ file(Filename, Abstract) ->
   FunForms = [ {function,Line,Name,Arity,Clauses} || 
                {function,Line,Name,Arity,Clauses}<-Forms,
                not lists:member({Name,Arity},Tests)],
-  io:format("call get_traces\n~p\n~p\n~p\n~p\n",[TestForms,FunForms,SUT,SUTFunctions]),
   Traces = get_traces(TestForms,FunForms,SUT,SUTFunctions),
   {Pos,Neg} = 
     lists:foldl(fun({trace,Ls},{P,N}) ->
@@ -107,13 +106,15 @@ all_traces({call, _, Name, Args}=Call, FunForms, SUT, SUTFunctions) ->
     {SUT,_} ->
       [ append(Trace,{trace,[{SUT,F,Args}]}) || Trace<-ArgTraces];
     _ ->
-      [ {trace,Trace} || Trace<-ArgTraces ]
+      ArgTraces
   end;
 all_traces({'fun',_,{clauses,Clauses}}, FunForms, SUT, SUTFunctions) ->
   lists:append([all_traces(Clause, FunForms, SUT, SUTFunctions) || Clause <- Clauses]);
 all_traces({cons,_,Head,Tail},FunForms,SUT,SUTFunctions) ->
   [append(Trace1, Trace2) || Trace1 <- all_traces(Head, FunForms, SUT, SUTFunctions),
                              Trace2 <- all_traces(Tail, FunForms, SUT, SUTFunctions)];
+all_traces({block,_,Exprs},FunForms,SUT,SUTFunctions) ->
+   product([all_traces(Expr, FunForms, SUT, SUTFunctions) || Expr <- Exprs]);
 all_traces(Form,_,_,_) ->
   [].
 
@@ -143,8 +144,8 @@ product([List|Lists]) ->
 % tests defined in the given file.
 visualize(FileName) ->
   {Pos,Neg} = file(FileName),
-  bluefringe:dot(Pos,Neg).
-
+  bluefringe:dot({Pos,Neg}),
+  {Pos,Neg}.
 
 butlast(L) ->
   lists:reverse(tl(lists:reverse(L))).
