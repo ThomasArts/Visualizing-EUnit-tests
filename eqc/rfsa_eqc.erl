@@ -153,7 +153,7 @@ prop_bluefringe() ->
       begin
         Pos = [Seq || {Seq,pos} <- S],
         Neg = [Seq || {Seq,neg} <- S],
-        bluefringe:qsm(Pos,Neg),
+        bluefringe:qsm({Pos,Neg}),
 	
         ?WHENFAIL(io:format("POS: ~p\nNEG: ~p\n",[Pos,Neg]),true)
       end)).
@@ -175,7 +175,7 @@ prop_compare() ->
         Pos = [Seq || {Seq,pos} <- S],
         Neg = [Seq || {Seq,neg} <- S],
         QsmRes = qsm_wrapper:run(Pos,Neg),
-        BlueRes = automata:automataToTuple(bluefringe:qsm(Pos,Neg)),
+        BlueRes = automata:automataToTuple(bluefringe:qsm({Pos,Neg})),
         ?WHENFAIL(io:format("QSM: ~p\nBluefringe: ~p\nInput: ~p\n",[QsmRes,BlueRes,{Pos,Neg}]),
                   cmp_automata(QsmRes,BlueRes))
       end)).
@@ -187,7 +187,7 @@ prop_statistic() ->
         Pos = [Seq || {Seq,pos} <- S],
         Neg = [Seq || {Seq,neg} <- S],
         QsmRes = qsm_wrapper:run(Pos,Neg),
-        BlueRes = automata:automataToTuple(bluefringe:qsm(Pos,Neg)),
+        BlueRes = automata:automataToTuple(bluefringe:qsm({Pos,Neg})),
         collect(which_automata(QsmRes,BlueRes), true)
       end)).
 
@@ -205,7 +205,7 @@ prop_check() ->
         Neg = [Seq || {Seq,neg} <- S],
 % Debug line
 %        io:format("TRY:Pos: ~p\nNeg: ~p\n", [Pos, Neg]),
-	Auto = bluefringe:qsm(Pos,Neg),
+	Auto = bluefringe:qsm({Pos,Neg}),
 	Tuple = automata:automataToTuple(Auto),
 	Accepted = customAccepted(Tuple),
 	?WHENFAIL(io:format("QSM: ~p\nPos: ~p\nNeg: ~p\n", [Auto, Pos, Neg]),

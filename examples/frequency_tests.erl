@@ -7,6 +7,7 @@
 %%   (c) Francesco Cesarini and Simon Thompson
 
 -module(frequency_tests).
+-include("../include/eunit_to_fsm.hrl").  %% later include_lib, only has effect if EUNIT_HRL is defined
 -include_lib("eunit/include/eunit.hrl").
 -import(frequency,[start/1, stop/0, allocate/0, deallocate/1,init/0]).
 
@@ -25,10 +26,10 @@
 startstop_test() ->
      ?_assertMatch(true,start([])),
      ?_assertMatch(ok,stop()),
-     ?_assertMatch(true,start([])),
+     ?_assertMatch(true,frequency:start([])),
      ?_assertMatch(ok,stop()).
 
-stopFirst_test_() ->
+stopFirst_test() ->
      ?_assertError(badarg,stop()).   % stop before start causes failure
     	     
 startTwice_test_() ->

@@ -4,16 +4,20 @@
 %%% Description : Module to collect the main functions of the library
 %%%
 %%% Created : 11 Feb 2011 by Pablo Lamela
+%%% Modified: 18 Feb 2011 by Thomas Arts
 %%%-------------------------------------------------------------------
 -module(eunit_to_fsm).
 
 %% API
--export([erun/1,erun/2, visualize/1]).
+-export([file/1,file/2, visualize/1]).
+-compile(export_all).
+
+-define(negative, '-negative-').
 
 % @spec (filename()) -> {[trace()],[trace()]}
 % @equiv erun(FileName,fun({_,F,_}) -> F end)
-erun(Filename) -> 
-  erun(Filename, fun({_,F,_}) -> F end).
+file(Filename) -> 
+  file(Filename, fun({_,F,_}) -> F end).
 
 % @spec (filename(),abstraction()) -> {[trace()], [trace()]}
 % @doc Interprets the EUnit file FileName and extracts traces
@@ -23,15 +27,124 @@ erun(Filename) ->
 %     fun({Module, Function, Arguments}) -> _ end.
 % This abstraction is applied to each function occurring in the extracted
 % traces.
-erun(Filename, Abstract) ->
-  {Pos, Neg} = static_parser:parse_file(Filename),
+file(Filename, Abstract) ->
+  {ok,Forms} = epp:parse_file(Filename,["."],[{'EUNIT_HRL',true}]),
+  EunitForms = eunit_autoexport:parse_transform(Forms,[]),
+  X = [ io:format("~s\n",[erl_pp:form(T)]) || T<-EunitForms ],
+  {SUT,SUTFunctions} = get_sut_functions(EunitForms),
+  Tests = lists:flatten([ Funs || {attribute,_,export,Funs} <- EunitForms ]), 
+  TestForms = [ {function,Line,Name,Arity,Clauses} || 
+                {function,Line,Name,Arity,Clauses}<-Forms,
+                lists:member({Name,Arity},Tests -- [{test,0}])],
+                 %% EUnit parse transform always adds {test,0}
+  FunForms = [ {function,Line,Name,Arity,Clauses} || 
+               {function,Line,Name,Arity,Clauses}<-Forms,
+               not lists:member({Name,Arity},Tests)],
+  io:format("call get_traces\n~p\n~p\n~p\n~p\n",[TestForms,FunForms,SUT,SUTFunctions]),
+  Traces = get_traces(TestForms,FunForms,SUT,SUTFunctions),
+  {Pos,Neg} = 
+    lists:foldl(fun({trace,Ls},{P,N}) ->
+                    case lists:last(Ls) of
+                      ?negative ->
+                        {P,[butlast(Ls)|N]};
+                      _ ->
+                        {[Ls|P],N}
+                    end
+                end,{[],[]},Traces),       
   {[[Abstract(E) || E <- Trace] || Trace <- Pos],
    [[Abstract(E) || E <- Trace] || Trace <- Neg]}.
+
+
+% @hidden
+% @spec (forms()) -> { atom(),[ {atom(), arity()} ]}
+% @doc Get the SUT functions from the forms and return 
+% modules name of SUT with imported functions.
+get_sut_functions(Forms) ->
+  [Module] = [atom_to_list(Mod) || {attribute,_,module,Mod}<-Forms],
+  case string:str(Module,"_test") of
+    0 ->
+      exit({module_name,Module});
+    Suffix ->
+      SUT = list_to_atom(string:substr(Module,1,Suffix-1)),
+      {SUT,
+        lists:flatten([ Funs || {attribute,_,import,{Mod,Funs}}<-Forms,
+                               Mod == SUT])}
+  end.
+
+% @spec ([form()],[form()],atom(),[{atom(),arity()}]) -> [[signed_trace()]]
+% @doc extract the traces
+get_traces([],_,_,_) ->
+  [];
+get_traces([TestForm|TestForms],FunForms,SUT,SUTFunctions) ->
+  all_traces(TestForm,FunForms,SUT,SUTFunctions)
+  ++ get_traces(TestForms,FunForms,SUT,SUTFunctions).
+
+%% @spec ([form()],...) -> [{trace,trace()}]
+all_traces({function, _, _Name, _Arity, Clauses}, FunForms, SUT, SUTFunctions) ->
+  lists:append([all_traces(Clause, FunForms, SUT, SUTFunctions) || Clause <- Clauses]);
+all_traces({clause, _, _Pat, _Guards, Body}, FunForms, SUT, SUTFunctions) ->
+  product([all_traces(Expr, FunForms, SUT, SUTFunctions) || Expr <- Body]);
+all_traces({tuple, _, [{atom, _, ?negative}, Expr]}, FunForms, SUT, SUTFunctions) ->
+  [append(Trace, {trace,[?negative]}) || Trace <- all_traces(Expr, FunForms, SUT, SUTFunctions)];
+all_traces({tuple, _, [{atom, _, setup}, SetUp, TearDown, Expr]}, FunForms, SUT, SUTFunctions) ->
+  [append(Trace1, Trace2) || Trace1 <- all_traces(SetUp, FunForms, SUT, SUTFunctions),
+                             Trace2 <- all_traces(Expr, FunForms, SUT, SUTFunctions)];
+all_traces({call, _, Name, Args}=Call, FunForms, SUT, SUTFunctions) ->
+  ArgTraces = product([all_traces(Arg, FunForms, SUT, SUTFunctions) || Arg <- Args]),
+  {M,F} = 
+    case Name of 
+      {remote,_,{atom,_,Mod},{atom,_,FN}} ->
+        {Mod,FN};
+      {atom,_,FName} ->
+        case lists:member({FName,length(Args)},SUTFunctions) of
+          true ->
+            {SUT,FName};
+          false ->
+            {'_',FName}
+        end
+    end,
+  case {M,F} of
+    {SUT,_} ->
+      [ append(Trace,{trace,[{SUT,F,Args}]}) || Trace<-ArgTraces];
+    _ ->
+      [ {trace,Trace} || Trace<-ArgTraces ]
+  end;
+all_traces({'fun',_,{clauses,Clauses}}, FunForms, SUT, SUTFunctions) ->
+  lists:append([all_traces(Clause, FunForms, SUT, SUTFunctions) || Clause <- Clauses]);
+all_traces({cons,_,Head,Tail},FunForms,SUT,SUTFunctions) ->
+  [append(Trace1, Trace2) || Trace1 <- all_traces(Head, FunForms, SUT, SUTFunctions),
+                             Trace2 <- all_traces(Tail, FunForms, SUT, SUTFunctions)];
+all_traces(Form,_,_,_) ->
+  [].
+
+
+append({trace,L1},{trace,L2}) ->
+  {trace,append2(L1,L2)}.
+   
+append2([], Ls2) ->
+    Ls2;
+append2([?negative| _], _) ->
+    [?negative];
+append2([E| Es], Ls2) ->
+    [E| append2(Es, Ls2)].
+  
+% @spec ([[{trace,trace()}]]) -> [{trace,trace()}]
+product([]) ->
+  [{trace,[]}];
+product([[]|Lists]) ->
+  product(Lists);
+product([List|Lists]) ->
+  [ append(Trace1,Trace2) || Trace1<-List,
+                             Trace2<-product(Lists)].
 
 
 % @spec (filename()) -> ok
 % @doc Shows a finite state machine representation of the EUnit test
 % tests defined in the given file.
 visualize(FileName) ->
-  {Pos,Neg} = erun(FileName),
+  {Pos,Neg} = file(FileName),
   bluefringe:dot(Pos,Neg).
+
+
+butlast(L) ->
+  lists:reverse(tl(lists:reverse(L))).
