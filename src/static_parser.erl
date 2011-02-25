@@ -37,7 +37,7 @@ parse_file(File) ->
 %% Internal functions
 %%====================================================================
 
-pp_file(File) -> case epp:parse_file(File, ["../include/fake_eunit"], []) of
+pp_file(File) -> case epp:parse_file(File, ["../include"], []) of
 		     {ok, Parsed} -> Parsed;
 		     {error, _} = Error -> throw(Error)
 		 end.

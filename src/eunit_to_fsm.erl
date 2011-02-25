@@ -10,7 +10,6 @@
 
 %% API
 -export([file/1,file/2, visualize/1]).
--compile(export_all).
 
 -define(negative, '-negative-').
 
