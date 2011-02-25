@@ -33,15 +33,14 @@ stopFirst_test() ->
      ?_assertError(badarg,stop()).   % stop before start causes failure
     	     
 startTwice_test_() ->
-  {setup,
-   fun ()  -> start([]) end,        % normal startup here
-   fun (_) -> stop() end,         % stop the system after the test
-   ?_assertError(badarg,start([]))  % a second start causes failure
-  }.
+    {setup,
+     fun ()  -> start([]) end,        % normal startup here
+     fun (_) -> stop() end,         % stop the system after the test
+     fun () -> ?_assertError(badarg,start([])) end  % a second start causes failure
+    }.
 
-stopTwice_test_() ->
-  start([]),stop(),?_assertError(badarg,stop()).   % a second stop causes failure
-
+stopTwice_test() ->
+    start([]),stop(),?_assertError(badarg,stop()).   % a second stop causes failure
 
 %% start(), stop() and allocate(): series of allocates
 %% note: not testing for the particular frequency returned, but rather
@@ -51,54 +50,38 @@ allocateFirst_test_() ->
   {setup,
    fun ()  -> ok end,             % null startup here
    fun (_) -> ok end,             % no cleanup to do
-   ?_assertError(badarg,allocate())  % allocate before start causes failure
+   fun () -> ?_assertError(badarg,allocate()) end  % allocate before start causes failure
   }.
 
 allocate1_test_() ->
-  {setup,
-   fun ()  -> start([1]) end,        % normal startup 
-   fun (_) -> stop() end,         % cleanup
-   ?_assertMatch({ok,_},allocate())  % one allocate is OK
-  }.
+    {setup,
+     fun ()  -> start([1]) end,        % normal startup 
+     fun (_) -> stop() end,         % cleanup
+     fun () -> ?_assertMatch({ok,_},allocate()) end  % one allocate is OK
+    }.
 	     
 allocate2_test_() ->
-  {setup,
-   fun ()  -> start([1]) end, % allocate one 
-   fun (_) -> stop() end, % cleanup
-   begin
-     allocate(),
-     ?_assertError(_,allocate())
-   end   % two allocates OK
-  }.
-
+    {setup,
+     fun ()  -> start([1]) end,        % normal startup
+     fun (_) -> stop() end,         % cleanup
+     fun () -> allocate(), ?_assertMatch({ok,_},allocate()) end  % two allocates OK
+    }.
+	     
 allocate3_test_() ->
-  {setup,
-   fun ()  -> start([1]) end, % allocate one 
-   fun (_) -> stop() end, % cleanup
-   begin
-     allocate(),
-     ?_assertError(_,start([1]))
-   end   % two allocates OK
-  }.
-
-allocate4_test_() ->
-  {setup,
-   fun ()  -> start([1]) end, % allocate one 
-   fun (_) -> stop() end, % cleanup
-   begin
-     allocate(),
-     ?_assertMatch(_,start([]))
-   end   % two allocates OK
-  }.
-
-
+    {setup,
+     fun ()  -> start([]),allocate(),allocate() end, % normal startup 
+     fun (_) -> stop() end,         % cleanup
+     fun () -> allocate(), ?_assertError(_,start()) end  % second start fails
+    }.
+	       	     
 allocate_dealloc_test_() ->
-  {setup,
-   fun ()  -> start([1]) end, 
-   fun (_) -> stop() end, % cleanup
-   begin
-     ?_assertMatch({ok,V},allocate()),
-     ?_assertMatch(_,deallocate(V)),
-     ?_assertMatch({ok,_},allocate())
-   end  
-  }.
+ {setup,
+  fun ()  -> start([1]) end, 
+  fun (_) -> stop() end, % cleanup
+  fun () ->
+    ?_assertMatch({ok,V},allocate()),
+    ?_assertMatch(_,deallocate(V)),
+    ?_assertMatch({ok,_},allocate())
+  end  
+ }.
+

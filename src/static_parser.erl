@@ -37,7 +37,7 @@ parse_file(File) ->
 %% Internal functions
 %%====================================================================
 
-pp_file(File) -> case epp:parse_file(File, ["includeStatic"], []) of
+pp_file(File) -> case epp:parse_file(File, ["../include/fake_eunit"], []) of
 		     {ok, Parsed} -> Parsed;
 		     {error, _} = Error -> throw(Error)
 		 end.
@@ -91,6 +91,9 @@ simplify_call_list([{call,_,_,_} = Call|Tail], FindFunc) ->
 	true -> [Result];
 	false -> [Result|simplify_call_list(Tail, FindFunc)]
     end;
+simplify_call_list([_ = Static|Tail], FindFunc) ->
+    static_evaluator(Static),
+    simplify_call_list(Tail, FindFunc);
 simplify_call_list([], _) -> [pos].
 
 resolve_call({call,_,{remote,_,Module,Name},Args}, _) ->
