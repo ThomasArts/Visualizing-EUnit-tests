@@ -28,25 +28,25 @@ startstop_test() ->
      ?_assertMatch(true,start([])),
      ?_assertMatch(ok,stop()).
 
-stopFirst_test_() ->
+stopFirst_test() ->
      ?_assertError(badarg,stop()).   % stop before start causes failure
     	     
 startTwice_test_() ->
     {setup,
      fun ()  -> start([]) end,        % normal startup here
      fun (_) -> stop() end,         % stop the system after the test
-     ?_assertError(badarg,start([]))  % a second start causes failure
+     fun () -> ?_assertError(badarg,start([])) end  % a second start causes failure
     }.
 
-%% stopTwice_test_() ->
-%%     start(),stop(),?_assertError(badarg,stop())   % a second stop causes failure
+%% stopTwice_test() ->
+%%     start([]),stop(),?_assertError(badarg,stop()).   % a second stop causes failure
 
 %% fourNegative_test_() ->
-%%     {setup,
-%%      fun ()  -> start(),stop(),start() end, % start;stop:start
+%%    {setup,
+%%      fun ()  -> start([]),stop(),start([]) end, % start;stop:start
 %%      fun (_) -> stop() end,         % stop the system
-%%      ?_assertError(badarg,start())  % can't start once started
-%%     }.
+%%      fun () -> ?_assertError(badarg,start([])) end  % can't start once started
+%%    }.
 
 
 %% start(), stop() and allocate(): series of allocates
@@ -57,56 +57,56 @@ startTwice_test_() ->
 %%     {setup,
 %%      fun ()  -> ok end,             % null startup here
 %%      fun (_) -> ok end,             % no cleanup to do
-%%      ?_assertError(badarg,allocate())  % allocate before start causes failure
+%%      fun () -> ?_assertError(badarg,allocate()) end  % allocate before start causes failure
 %%     }.
 
 %% allocate1_test_() ->
 %%     {setup,
-%%      fun ()  -> start() end,        % normal startup 
+%%      fun ()  -> start([]) end,        % normal startup 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertMatch({ok,_},allocate())  % one allocate is OK
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end  % one allocate is OK
 %%     }.
 	     
 %% allocate2_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate() end, % allocate one 
+%%      fun ()  -> start([]),allocate() end, % allocate one 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertMatch({ok,_},allocate())  % two allocates OK
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end  % two allocates OK
 %%     }.
 	     
 %% allocate3_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate() end, % allocate two 
+%%      fun ()  -> start([]),allocate(),allocate() end, % allocate two 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertMatch({ok,_},allocate())  % three allocates OK
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end  % three allocates OK
 %%     }.
 	       	     
 %% allocate4_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate() end, % allocate three 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate() end, % allocate three 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertMatch({ok,_},allocate())  % four allocates OK
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end  % four allocates OK
 %%     }.  
 	      	     
 %% allocate5_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),allocate() end, % allocate four 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),allocate() end, % allocate four 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertMatch({ok,_},allocate())  % five allocates OK
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end  % five allocates OK
 %%     }.
 
 %% allocate6_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate five 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate five 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertMatch({ok,_},allocate())  % six allocates OK
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end  % six allocates OK
 %%     }.
 
 %% allocate7_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate six 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate six 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertMatch({error,no_frequency},allocate())  % seven allocates not OK
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end  % seven allocates not OK
 %%     }.
 
 
@@ -114,44 +114,44 @@ startTwice_test_() ->
 	     
 %% allocate1start_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate() end, % allocate one 
+%%      fun ()  -> start([]),allocate() end, % allocate one 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertError(badarg,start())  % second start fails
+%%      fun () -> ?_assertError(badarg,start([])) end  % second start fails
 %%     }.
 	     
 %% allocate2start_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate() end, % allocate two 
+%%      fun ()  -> start([]),allocate(),allocate() end, % allocate two 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertError(badarg,start())  % second start fails
+%%      fun () -> ?_assertError(badarg,start([])) end  % second start fails
 %%     }.
 
 %% allocate3start_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate() end, % allocate three 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate() end, % allocate three 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertError(badarg,start())  % second start fails
+%%      fun () -> ?_assertError(badarg,start([])) end  % second start fails
 %%     }.  	      	   	       	     
 	      	     
 %% allocate4start_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),allocate() end, % allocate four 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),allocate() end, % allocate four 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertError(badarg,start())  % second start fails
+%%      fun () -> ?_assertError(badarg,start([])) end  % second start fails
 %%     }.
 
 %% allocate5start_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate five 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate five 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertError(badarg,start())  % second start fails
+%%      fun () -> ?_assertError(badarg,start([])) end  % second start fails
 %%     }.
 
 %% allocate6start_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate six 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate six 
 %%      fun (_) -> stop() end,         % cleanup
-%%      ?_assertError(badarg,start())  % second start fails
+%%      fun () -> ?_assertError(badarg,start([])) end  % second start fails
 %%     }.
 
 
@@ -159,44 +159,44 @@ startTwice_test_() ->
 	     
 %% allocate1stop_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate() end, % allocate one 
+%%      fun ()  -> start([]),allocate() end, % allocate one 
 %%      fun (_) -> ok end,             % no cleanup to do
-%%      ?_assertMatch(ok,stop())       % stop succeeds
+%%      fun () -> ?_assertMatch(ok,stop()) end   % stop succeeds
 %%     }.
 	     
 %% allocate2stop_test_() ->
 %%     {setup,
-%%      fun ()  -> start() end, % allocate two 
+%%      fun ()  -> start([]) end, % allocate two 
 %%      fun (_) -> ok end,             % no cleanup to do
-%%       allocate(), allocate(), ?_assertMatch(ok,stop())       % stop succeeds
+%%      fun () ->  allocate(), allocate(), ?_assertMatch(ok,stop()) end   % stop succeeds
 %%     }.
 
 %% allocate3stop_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate() end, % allocate three 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate() end, % allocate three 
 %%      fun (_) -> ok end,             % no cleanup to do
-%%      ?_assertMatch(ok,stop())       % stop succeeds
+%%      fun () -> ?_assertMatch(ok,stop()) end   % stop succeeds
 %%     }.  	      	   	       	     
 	      	     
 %% allocate4stop_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),allocate() end, % allocate four 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),allocate() end, % allocate four 
 %%      fun (_) -> ok end,             % no cleanup to do
-%%      ?_assertMatch(ok,stop())       % stop succeeds
+%%      fun () -> ?_assertMatch(ok,stop()) end   % stop succeeds
 %%     }.
 
 %% allocate5stop_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate five 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate five 
 %%      fun (_) -> ok end,             % no cleanup to do
-%%      ?_assertMatch(ok,stop())       % stop succeeds
+%%      fun () -> ?_assertMatch(ok,stop()) end   % stop succeeds
 %%     }.
 
 %% allocate6stop_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate six 
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),allocate(),allocate(),allocate() end, % allocate six 
 %%      fun (_) -> ok end,             % no cleanup to do
-%%      ?_assertMatch(ok,stop())       % stop succeeds
+%%      fun () -> ?_assertMatch(ok,stop()) end   % stop succeeds
 %%     }.
 
 %% %% Other possibilities for start(), stop() and allocate()
@@ -214,50 +214,50 @@ startTwice_test_() ->
 
 %% allocDealloc_3_1_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),
 %%                 deallocate(10) end,    % allocate three; dellocate first
 %%      fun (_) -> stop() end,            % cleanup
-%%      ?_assertMatch({ok,10},allocate()) % LIFO behaviour
+%%      fun () -> ?_assertMatch({ok,10},allocate()) end % LIFO behaviour
 %%     }.    
 
 %% allocDealloc_3_2_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),
 %%                 deallocate(11) end,    % allocate three; dellocate second
 %%      fun (_) -> stop() end,            % cleanup
-%%      ?_assertMatch({ok,11},allocate()) % LIFO behaviour
+%%      fun () -> ?_assertMatch({ok,11},allocate()) end % LIFO behaviour
 %%     }.    
 
 %% allocDealloc_3_3_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),
 %%                 deallocate(12) end,    % allocate three; dellocate third
 %%      fun (_) -> stop() end,            % cleanup
-%%      ?_assertMatch({ok,12},allocate()) % LIFO behaviour
+%%      fun () -> ?_assertMatch({ok,12},allocate()) end % LIFO behaviour
 %%     }.    
 
 %% allocDealloc_3_4_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),
 %%                 deallocate(13) end,    % allocate three; dellocate another
 %%      fun (_) -> stop() end,            % cleanup
-%%      ?_assertMatch({ok,13},allocate()) % LIFO behaviour
+%%      fun () -> ?_assertMatch({ok,13},allocate()) end % LIFO behaviour
 %%     }.    
 
 %% allocDealloc_3_5_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),
 %%                 deallocate(14) end,    % allocate three; dellocate another
 %%      fun (_) -> stop() end,            % cleanup
-%%      ?_assertMatch({ok,14},allocate()) % LIFO behaviour
+%%      fun () -> ?_assertMatch({ok,14},allocate()) end % LIFO behaviour
 %%     }.    
 
 %% allocDealloc_3_6_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(),
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(),
 %%                 deallocate(15) end,    % allocate three; dellocate another
 %%      fun (_) -> stop() end,            % cleanup
-%%      ?_assertMatch({ok,15},allocate()) % LIFO behaviour
+%%      fun () -> ?_assertMatch({ok,15},allocate()) end % LIFO behaviour
 %%     }.    
 
 
@@ -268,75 +268,75 @@ startTwice_test_() ->
 
 %% allocDeallocAlloc_3_1_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(), % allocate three
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(), % allocate three
 %%                 deallocate(10),                           % dellocate first
 %% 		allocate(),allocate(),allocate() end,     % allocate three
 %%      fun (_) -> stop() end,                               % cleanup
-%%      ?_assertMatch({ok,_},allocate())                     % one left
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end                    % one left
 %%     }.    
 
 %% allocDeallocAllocNeg_3_1_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(), % allocate three
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(), % allocate three
 %%                 deallocate(10),                           % dellocate first
 %% 		allocate(),allocate(),allocate(),
 %%                 allocate() end,                           % allocate four
 %%      fun (_) -> stop() end,                               % cleanup
-%%      ?_assertMatch({error,_},allocate())                     % none left
+%%      fun () -> ?_assertMatch({error,_},allocate()) end                    % none left
 %%     }.    
 
 %% allocDeallocAlloc_3_2_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(), % allocate three
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(), % allocate three
 %%                 deallocate(11),                           % dellocate second
 %% 		allocate(),allocate(),allocate() end,     % allocate three
 %%      fun (_) -> stop() end,                               % cleanup
-%%      ?_assertMatch({ok,_},allocate())                     % one left
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end                    % one left
 %%     }.    
 
 %% allocDeallocAllocNeg_3_2_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(), % allocate three
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(), % allocate three
 %%                 deallocate(11),                           % dellocate first
 %% 		allocate(),allocate(),allocate(),
 %%                 allocate() end,                           % allocate four
 %%      fun (_) -> stop() end,                               % cleanup
-%%      ?_assertMatch({error,_},allocate())                  % none left
+%%      fun () -> ?_assertMatch({error,_},allocate()) end                 % none left
 %%     }.    
 
 %% allocDeallocAlloc_3_3_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(), % allocate three
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(), % allocate three
 %%                 deallocate(12),                           % dellocate third
 %% 		allocate(),allocate(),allocate() end,     % allocate three
 %%      fun (_) -> stop() end,                               % cleanup
-%%      ?_assertMatch({ok,_},allocate())                     % one left
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end                    % one left
 %%     }.   
- 
+
 %% allocDeallocAllocNeg_3_3_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(), % allocate three
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(), % allocate three
 %%                 deallocate(12),                           % dellocate first
 %% 		allocate(),allocate(),allocate(),
 %%                 allocate() end,                           % allocate four
 %%      fun (_) -> stop() end,                               % cleanup
-%%      ?_assertMatch({error,_},allocate())                  % none left
+%%      fun () -> ?_assertMatch({error,_},allocate()) end                 % none left
 %%     }.    
 
 %% allocDeallocAlloc_3_4_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(), % allocate three
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(), % allocate three
 %%                 deallocate(13),                           % dellocate another
 %% 		allocate(),allocate() end,                % allocate two
 %%      fun (_) -> stop() end,                               % cleanup
-%%      ?_assertMatch({ok,_},allocate())                     % one left
+%%      fun () -> ?_assertMatch({ok,_},allocate()) end                    % one left
 %%     }.    
-    
+  
 %% allocDeallocAllocNeg_3_4_test_() ->
 %%     {setup,
-%%      fun ()  -> start(),allocate(),allocate(),allocate(), % allocate three
+%%      fun ()  -> start([]),allocate(),allocate(),allocate(), % allocate three
 %%                 deallocate(13),                           % dellocate another
 %% 		allocate(),allocate(),allocate() end,     % allocate three
 %%      fun (_) -> stop() end,                               % cleanup
-%%      ?_assertMatch({error,_},allocate())                  % none left
+%%      fun () -> ?_assertMatch({error,_},allocate()) end                 % none left
 %%     }.    

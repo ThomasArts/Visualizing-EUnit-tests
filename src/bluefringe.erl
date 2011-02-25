@@ -10,11 +10,11 @@
 -include("../include/automata.hrl").
 
 %% API
--export([dot/2,qsm/2]).
+-export([dot/1,qsm/1]).
 -import(bluefringe_merge,[merge/3,number_of_merges/3]).
 
-dot(Positive,Negative) ->
-  bluefringe_dot:visualize(qsm(Positive,Negative)).
+dot({Positive,Negative}) ->
+  bluefringe_dot:visualize(qsm({Positive,Negative})).
 
 %%====================================================================
 %% API
@@ -24,7 +24,7 @@ dot(Positive,Negative) ->
 %% Description: Executes QSM algorithm with blue-finge on the lists
 %%--------------------------------------------------------------------
 
-qsm(PT, NT) ->
+qsm({PT, NT}) ->
     Aut = bluefringe_apta:generateApta({PT, NT}),
     remove_floating_states(iterate_all({Aut, [Aut#fa.iSt]}, {PT, NT})).
 

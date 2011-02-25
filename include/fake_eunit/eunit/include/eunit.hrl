@@ -88,12 +88,18 @@
 %% This is mostly a convenience which gives more detailed reports.
 %% Note: Guard is a guarded pattern, and can not be used for value.
 -define(assertMatch(Guard,Expr), Expr).
+-define(_assertMatch(Guard,Expr), ?assertMatch(Guard,Expr)).
 -define(assertEqual(Expect,Expr), Expr).
+-define(_assertEqual(Expect,Expr), ?assertEqual(Expect,Expr)).
 -define(assertException(Class, Term, Expr), {fsm_eunit_parser_negative, Expr}).
+-define(_assertException(Class, Term, Expr), ?assertException(Class, Term, Expr)).
 
 -define(assertError(Term, Expr), ?assertException(error, Term, Expr)).
+-define(_assertError(Term, Expr), ?assertError(Term, Expr)).
 -define(assertExit(Term, Expr), ?assertException(exit, Term, Expr)).
+-define(_assertExit(Term, Expr), ?assertExit(Term, Expr)).
 -define(assertThrow(Term, Expr), ?assertException(throw, Term, Expr)).
+-define(_assertThrow(Term, Expr), ?assertThrow(Term, Expr)).
 
 %% Macros for running operating system commands. (Note that these
 %% require EUnit to be present at runtime, or at least eunit_lib.)
