@@ -2,6 +2,9 @@
 
 -compile(export_all).
 
+-include("../include/tracing.hrl").
+
+
 %% File is a String, "Module.erl".
 
 file(File) ->
@@ -69,9 +72,9 @@ transformer(Tree) ->
 	 	atom ->
 	 	    case is_testFun(erl_syntax:atom_value(FName)) of
 	 		test ->
-	 		    wrap_test_function(Tree,FName,eunit_tracing,test_wrap);
+	 		    wrap_test_function(Tree,FName,?tracing,test_wrap);
 	 		test_object ->
-	 		    wrap_test__function(Tree,FName,eunit_tracing,test__wrap);
+	 		    wrap_test__function(Tree,FName,?tracing,test__wrap);
 	 		_ -> Tree
 	 	    end;
 	 	_ -> Tree
@@ -90,7 +93,7 @@ makeMacroTree(OldName,Wrapper) ->
     X = erl_syntax:variable("X"),
     Y = erl_syntax:variable("Y"),
     LHS = erl_syntax:application(erl_syntax:atom(NewName),[X,Y]),
-    ModName = erl_syntax:atom('eunit_tracing'),
+    ModName = erl_syntax:atom(?tracing),
     FunName = erl_syntax:atom(Wrapper),
     MacApp = erl_syntax:macro(erl_syntax:atom(OldName),[X,Y]),
     RHS = erl_syntax:application(erl_syntax:module_qualifier(ModName,FunName),[MacApp]),

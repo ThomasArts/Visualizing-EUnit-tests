@@ -8,6 +8,8 @@
 -export([map_tuple/2, test_wrap/1, test__wrap/1,
          test__group_wrap/1, negative_wrap/1]).
 
+-include("../include/tracing.hrl").
+
 %%
 %% Top-level function to initiate tracing.
 %%
@@ -23,11 +25,11 @@ t(Mod)
     code:load_file(Mod),
     code:load_file(addTestSuffix(Mod)),
     erlang:trace(all, true, [call]),
-    erlang:trace_pattern({eunit_tracing, test_start, '_'}, true, [local]),
-    erlang:trace_pattern({eunit_tracing, test_end, '_'}, true, [local]),    
-    erlang:trace_pattern({eunit_tracing, test_group_start, '_'}, true, [local]),
-    erlang:trace_pattern({eunit_tracing, test_group_end, '_'}, true, [local]),    
-    erlang:trace_pattern({eunit_tracing, test_negative, '_'}, true, [local]),    
+    erlang:trace_pattern({?tracing, test_start, '_'}, true, [local]),
+    erlang:trace_pattern({?tracing, test_end, '_'}, true, [local]),    
+    erlang:trace_pattern({?tracing, test_group_start, '_'}, true, [local]),
+    erlang:trace_pattern({?tracing, test_group_end, '_'}, true, [local]),    
+    erlang:trace_pattern({?tracing, test_negative, '_'}, true, [local]),    
     erlang:trace_pattern({Mod, '_', '_'}, true, [global]).
 
 addTestSuffix(Mod) ->
