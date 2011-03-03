@@ -7,23 +7,8 @@
 %%   (c) Francesco Cesarini and Simon Thompson
 
 -module(frequency_tests).
-
-%-include("../include/eunit_to_fsm.hrl").
-%% later include_lib, only has effect if EUNIT_HRL is defined
-
 -include_lib("eunit/include/eunit.hrl").
 -import(frequency,[start/1, stop/0, allocate/0, deallocate/1]).
-
-%% These are wrappers for assertXXX and _assertXXX fromEUnit
-%% Replace the EUnit calls with these.
-
-%% TODO modify EUnit so that don't need to change macro calls.
-%% or find a clever way of achieving the same effect without
-%% modifying EUnit. Note that since these are macros, need to do
-%% at/before macro processing stage.
-
--define(assertErrorTrace(X,Y),tracing:test_negative(?assertError(X,Y))).
--define(_assertErrorTrace(X,Y),tracing:negative_wrap(?_assertError(X,Y))).
 
 
 %%
@@ -32,37 +17,33 @@
 
 %% A single positive test.
 
-startstop_test() ->
-    tracing:test_wrap(fun () ->
-                        ?assertMatch(true,start([])),
-                        ?assertMatch(ok,stop()),
-                        ?assertMatch(true,start([])),
-                        ?assertMatch(ok,stop())
-	              end).
-
+startstop_test() -> 
+    ?assertMatch(true,start([])),
+    ?assertMatch(ok,stop()),
+    ?assertMatch(true,start([])),
+    ?assertMatch(ok,stop()).
+    
 %% A group of positive tests.
 
 startstop_test_() ->
-    tracing:test__wrap([ ?_assertMatch(true,start([])),
-		               ?_assertMatch(ok,stop()),
-		               ?_assertMatch(true,start([])),
-		               ?_assertMatch(ok,stop())]).
+    [ ?_assertMatch(true,start([])),
+      ?_assertMatch(ok,stop()),
+      ?_assertMatch(true,start([])),
+      ?_assertMatch(ok,stop())].
 
 %% A single negative test.
 
 stopFirst_test() ->
-    tracing:test_wrap(fun () ->
-		              ?assertErrorTrace(badarg,stop())
-	              end).  
+    ?assertError(badarg,stop()).
 
 %% A fixture that also contains a negative test.
 
 startTwice_test_() ->
-    tracing:test__wrap([{setup,
-		         fun () -> start([]) end,
-		         fun (_) -> stop() end,
-		         ?_assertErrorTrace(badarg,start([]))
-		        }]).
+    [{setup,
+      fun ()  -> start([]) end,       
+      fun (_) -> stop() end,         
+      ?_assertError(badarg,start([]))  
+     }].
 
 % stopTwice_test_() ->
 %   start([]),stop(),?_assertError(badarg,stop()).   % a second stop causes failure
