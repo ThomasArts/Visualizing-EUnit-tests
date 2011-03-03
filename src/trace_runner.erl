@@ -52,6 +52,8 @@ exclude(Module) ->
      [{frequency,init},{Module,module_info},{Module,test}].
 
 % Splits a list of messages into traces.
+% Assumes that the list is well formed - start/end messages
+% are properly matched.
 
 split_traces([])-> 
     [];
