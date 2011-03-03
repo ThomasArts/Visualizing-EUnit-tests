@@ -9,9 +9,38 @@
 -module(eunit_to_fsm).
 
 %% API
--export([file/1,file/2, visualize/1]).
+-export([dynamic/2, static/2, 
+         file/1,file/2, visualize/1]).
 
 -define(negative, '-negative-').
+
+% @spec (filename(),[compiler_option()]) -> {[trace()],[trace()]}
+% @doc Extract traces from EUnit file FileName_tests if it exists, otherwise assume the 
+% tests to be provided in FileName. We trace all calls to functions exported in FileName.
+dynamic(FileName,Options) ->
+  TestFile = filename:rootname(FileName,".erl")++"_tests.erl",
+  {File,Strings} = 
+    case filelib:is_file(TestFile) of
+      true ->
+        eunit_macro_expander:file(TestFile);
+      false ->
+        case filelib:is_file(FileName) of
+        true ->
+            eunit_macro_expander:file(FileName);
+          false ->
+            exit({enoent,FileName})
+        end
+    end,
+    ok = file:write_file("/tmp/"++File,Strings),
+    {ok,Module,Binary} = compile:file("/tmp/"++File,[binary|Options]),
+    {module,_} = code:load_binary(Module,File,Binary).
+
+  
+% @spec (filename(),[compiler_option()]) -> {[trace()],[trace()]}
+% @doc Staticly interprets EUnit file FileName_tests if it exists, otherwise assume the 
+% tests to be provided in FileName. The tests are not run to obtain the traces.
+static(FileName,_Options) ->
+  file(FileName).
 
 % @spec (filename()) -> {[trace()],[trace()]}
 % @equiv erun(FileName,fun({_,F,_}) -> F end)
@@ -29,7 +58,7 @@ file(Filename) ->
 file(Filename, Abstract) ->
   {ok,Forms} = epp:parse_file(Filename,["."],[{'EUNIT_HRL',true}]),
   EunitForms = eunit_autoexport:parse_transform(Forms,[]),
-  X = [ io:format("~s\n",[erl_pp:form(T)]) || T<-EunitForms ],
+  _X = [ io:format("~s\n",[erl_pp:form(T)]) || T<-EunitForms ],
   {SUT,SUTFunctions} = get_sut_functions(EunitForms),
   Tests = lists:flatten([ Funs || {attribute,_,export,Funs} <- EunitForms ]), 
   TestForms = [ {function,Line,Name,Arity,Clauses} || 

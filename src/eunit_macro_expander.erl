@@ -18,8 +18,7 @@ file(File) ->
     NewTree = erl_syntax_lib:map(fun transformer/1,Tree),
     {Head,Body} = split(erl_syntax:form_list_elements(NewTree)),
     MacroTree = erl_syntax:form_list(Head++Macros1++Macros2++Body),
-    Strings = erl_prettypr:format(MacroTree),
-    file:write_file("/tmp/"++filename:basename(File),Strings).
+    {filename:basename(File),erl_prettypr:format(MacroTree)}.
 
 %% Transforms a tree, doing two things
 %%  - replaces macros of the form assertXXX
