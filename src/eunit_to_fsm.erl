@@ -5,19 +5,22 @@
 %%%
 %%% Created : 11 Feb 2011 by Pablo Lamela
 %%% Modified: 18 Feb 2011 by Thomas Arts
+%%% Modified: 07 Mar 2011 by Simon Thompson
 %%%-------------------------------------------------------------------
 -module(eunit_to_fsm).
 
 %% API
--export([dynamic/2, static/2, 
-         file/1,file/2, visualize/1]).
+-export([dynamic/3, static/2, file/1, file/2, visualize/1]).
 
 -define(negative, '-negative-').
 
-% @spec (filename(),[compiler_option()]) -> {[trace()],[trace()]}
+% @spec (filename(),[compiler_option()],[{module(),function()}]) -> {[trace()],[trace()]}
 % @doc Extract traces from EUnit file FileName_tests if it exists, otherwise assume the 
 % tests to be provided in FileName. We trace all calls to functions exported in FileName.
-dynamic(FileName,Options) ->
+% Compiler options passed as second argument; functions not be traced as third argument.
+
+dynamic(FileName,Options,Hide) ->
+  BaseName = list_to_atom(filename:basename(FileName,".erl")),
   TestFile = filename:rootname(FileName,".erl")++"_tests.erl",
   {File,Strings} = 
     case filelib:is_file(TestFile) of
@@ -33,7 +36,11 @@ dynamic(FileName,Options) ->
     end,
     ok = file:write_file("/tmp/"++File,Strings),
     {ok,Module,Binary} = compile:file("/tmp/"++File,[binary|Options]),
-    {module,_} = code:load_binary(Module,File,Binary).
+    io:format("Module=~p ~n",[Module]),
+    code:delete(BaseName), % Added to purge code for module.erl
+    code:purge(BaseName),  % as othewise repeated evaluations give error.
+    {module,_} = code:load_binary(Module,File,Binary),
+    trace_runner:start(Module,Hide).
 
   
 % @spec (filename(),[compiler_option()]) -> {[trace()],[trace()]}

@@ -3,12 +3,15 @@
 % Runs the functions from Module:test() with
 % tracing as provided by eunit_tracing.erl
 
--export([start/2,tester/2,exclude/1]).
+-export([start/1,start/2,tester/2,exclude/1]).
 
 -include("../include/tracing.hrl").
 
 % Top-level function.
 % Returns the traces as a list of (lists of) lists.
+
+start(Module) ->
+    start(Module,exclude(Module)).
 
 start(Module,Hide) ->
     eunit_tracing:t(),
@@ -59,14 +62,20 @@ split_traces([])->
     [];
 
 split_traces([{?tracing,test_start,[]}|Rest]) ->
-    {Trace,[{?tracing,test_end,[]}|Msgs]}
-	= lists:splitwith(fun (Msg) -> Msg /= {?tracing,test_end,[]} end,Rest),
-    [Trace|split_traces(Msgs)];
+    case lists:splitwith(fun (Msg) -> Msg /= {?tracing,test_end,[]} end,Rest) of 
+	{Trace,[{?tracing,test_end,[]}|Msgs]} -> 
+	    [Trace|split_traces(Msgs)];
+	{_,_} ->
+	    erlang:error("no matching test_end")
+    end;
 
 split_traces([{?tracing,test_group_start,[]}|Rest]) ->
-    {Trace,[{?tracing,test_group_end,[]}|Msgs]}
-	= lists:splitwith(fun (Msg) -> Msg /= {?tracing,test_group_end,[]} end,Rest),
-    [split_traces(Trace)|split_traces(Msgs)];
+    case  lists:splitwith(fun (Msg) -> Msg /= {?tracing,test_group_end,[]} end,Rest) of
+	{Trace,[{?tracing,test_group_end,[]}|Msgs]} -> 
+	    [split_traces(Trace)|split_traces(Msgs)];
+	{_,_} ->
+	    erlang:error("no matching test_group_end")
+    end;
 
 split_traces(Msgs) ->
     {Trace,Rest}
@@ -76,8 +85,5 @@ split_traces(Msgs) ->
 % Aux function: used in splitting checks for "start" messages.
 
 not_end(Msg) ->
-    Msg /= {?tracing,test_group_start,[]} andalso  Msg /= {?tracing,test_start,[]}
-    
-.
-
+    Msg /= {?tracing,test_group_start,[]} andalso  Msg /= {?tracing,test_start,[]}.
 
