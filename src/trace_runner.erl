@@ -23,8 +23,16 @@ start(Module,Hide) ->
 % Testing process: runs Module:test()
 % and then tells Pid it has finished.
 
+% The one second pause is to ensure that
+% all trace messages are collected; without this
+% some carry over to the next call ... 
+
 tester(Module,Pid) ->
     Module:test(),
+    receive
+    after 1000 ->
+	    ok
+    end,
     Pid!finished.
 
 % Loop to collect messages in a list
