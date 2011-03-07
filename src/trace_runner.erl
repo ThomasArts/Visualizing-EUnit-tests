@@ -3,7 +3,7 @@
 % Runs the functions from Module:test() with
 % tracing as provided by eunit_tracing.erl
 
--export([start/1,start/2,tester/2,exclude/1]).
+-export([start/1,start/2,tester/2,exclude/1,consis_check/1,consistent/1]).
 
 -include("../include/tracing.hrl").
 
@@ -94,4 +94,29 @@ split_traces(Msgs) ->
 
 not_end(Msg) ->
     Msg /= {?tracing,test_group_start,[]} andalso  Msg /= {?tracing,test_start,[]}.
+
+% Check for consistency
+% Returns all inconsistent pairs, if any.
+
+% Looking for lists in Neg which are initial segments of
+% a list in Pos (since positive traces are closed under
+% initial segment).
+
+consistent({Pos,Neg}) ->
+    consis_check({Pos,Neg}) == [].
+
+consis_check({Pos,Neg}) ->
+    [ {Ps,Ns} || Ps <- Pos,
+		 Ns <- Neg, is_initial(Ps,Ns) ].
+
+is_initial(_,[]) ->
+    true;
+is_initial([I|Ps],[J|Ns])
+  when I==J ->
+    is_initial(Ps,Ns);
+is_initial(_,_) ->
+    false.
+    
+	       
+    
 
