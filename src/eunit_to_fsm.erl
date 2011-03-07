@@ -36,7 +36,6 @@ dynamic(FileName,Options,Hide) ->
     end,
     ok = file:write_file("/tmp/"++File,Strings),
     {ok,Module,Binary} = compile:file("/tmp/"++File,[binary|Options]),
-    io:format("Module=~p ~n",[Module]),
     code:delete(BaseName), % Added to purge code for module.erl
     code:purge(BaseName),  % as othewise repeated evaluations give error.
     {module,_} = code:load_binary(Module,File,Binary),
