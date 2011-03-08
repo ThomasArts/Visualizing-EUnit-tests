@@ -85,9 +85,18 @@ addToFailExtra(Agd, ExpandedTransitions, FirstFailure, State) ->
     addPath({f, fun addToFail/2}, Agd, ExpandedTransitions,
 	    FirstFailure, State).
 
+checkConflicts(Failure, Acceptance) ->
+    Ends = lists:filter(fun ([]) -> true; (_) -> false end, Failure),
+    case {Ends, Acceptance} of
+	{[], _} -> ok;
+	{_, []} when length(Failure) =:= length(Ends) -> ok;
+	_ -> throw({error, conflictingTraces})
+    end.
+
 %% expandOneNode expands one single node and returns a list of
 % new states (and the new agd)
 expandOneNode(Agd, {State, Failure, Acceptance}) ->
+    checkConflicts(Failure, Acceptance),
     expandOneNode(Agd, [], {State, Failure, Acceptance}).
 expandOneNode(Agd, ExpandedTransitions,
 	      {State, Failure, [FirstAcceptance|TailAcceptance]}) ->
