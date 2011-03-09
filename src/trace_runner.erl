@@ -3,7 +3,7 @@
 % Runs the functions from Module:test() with
 % tracing as provided by eunit_tracing.erl
 
--export([start/1,start/2,tester/2,exclude/1,consis_check/1,consistent/1]).
+-export([start/1,start/2,tester/2,consis_check/1,consistent/1]).
 
 -include("../include/tracing.hrl").
 
@@ -11,7 +11,7 @@
 % Returns the traces as a list of (lists of) lists.
 
 start(Module) ->
-    start(Module,exclude(Module)).
+    start(Module,fr_abstraction()).
 
 start(Module,Hide) ->
     eunit_tracing:t(),
@@ -51,17 +51,23 @@ loop(Msgs) ->
 %  - remove calls in the Hide list.
 
 process(Msgs,Hide) ->
-    [ Call || {_,_,_,Call} <- Msgs, not(lists:member(mf_name(Call),Hide)) ].
+  lists:foldl(fun({_,_,_,Call},Acc) ->
+                  case catch abstraction(Hide,Call) of
+                    {'EXIT',_} -> Acc;
+                    Other -> [ {Other,Call} | Acc ]
+                  end
+              end,[],Msgs).
 
-mf_name({M,F,_}) ->
-    {M,F}.
+%% How do we ensure that M==Mod
+abstraction(Hide,Call) ->
+  (fun({M,F,A}) when (F =/= module_info orelse F=/=test) -> Hide({M,F,A}) end)(Call).
 
 % Computes a particular Hide list.
 % Always want to exclude the latter two elements.
-    
-exclude(Module) ->
-     [{frequency,init},{Module,module_info},{Module,test}].
 
+fr_abstraction() ->
+  fun({M,F,_}) when {M,F}=/={frequency,init} -> {M,F} end.
+    
 % Splits a list of messages into traces.
 % Assumes that the list is well formed - start/end messages
 % are properly matched.
