@@ -25,8 +25,8 @@ t(Mod)
     erlang:trace(all, true, [call]),
     erlang:trace_pattern({?tracing, open, '_'}, true, [local]),
     erlang:trace_pattern({?tracing, close, '_'}, true, [local]),    
-    erlang:trace_pattern({?tracing, test_start, '_'}, true, [local]),
-    erlang:trace_pattern({?tracing, test_end, '_'}, true, [local]),    
+    %erlang:trace_pattern({?tracing, test_start, '_'}, true, [local]),
+    %erlang:trace_pattern({?tracing, test_end, '_'}, true, [local]),    
     erlang:trace_pattern({?tracing, test_negative, '_'}, true, [local]),    
     erlang:trace_pattern({Mod, '_', '_'}, true, [global]).
 
@@ -41,10 +41,10 @@ addTestSuffix(Mod) ->
 %% to be called and so to appear in the trace.
 
 test_start() ->
-    ok.
+    open(test).
 
 test_end() ->
-    ok.
+    close(test).
 
 test_negative() ->
     ok.

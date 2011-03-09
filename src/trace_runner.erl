@@ -3,7 +3,7 @@
 % Runs the functions from Module:test() with
 % tracing as provided by eunit_tracing.erl
 
--export([start/1,start/2,tester/2,consis_check/1,consistent/1]).
+-export([start/1,start/2,tester/2,consis_check/1,consistent/1,parse/1,fr_abstraction/0]).
 
 -export([posneg/1]).
 
@@ -15,20 +15,27 @@
 start(Module) ->
     start(Module,fr_abstraction()).
 
-start(Module, Abstraction) ->
+start(Module, _Abstraction) ->
     eunit_tracing:t(),
     spawn(?MODULE, tester, [Module, self()]),
     Msgs = loop([]),
-    Traces = split_traces([Call || {_, _, _, Call} <- Msgs]),
-    exit(Traces),
+    Calls = [Call || {_, _, _, Call} <- Msgs],
+    io:format("Printing calls~n",[]),
+    io:format("~p~n",[Calls]),
+    CallsF = process(Calls,fr_abstraction()),
+    io:format("Printing filtered calls~n",[]),
+    io:format("~p~n",[CallsF]),
+    Traces = parse(CallsF),
+    io:format("Printing traces~n",[]),
+    io:format("~p~n",[Traces]).
     %% flatten to one list with traces (no nesting)
-    PosNeg =
-	lists:foldl(fun (Trace, {P, N}) ->
-			    case posneg(Trace) of
-			      {T, []} -> {[process(T, Abstraction)| P], N};
-			      {T, _} -> {P, [process(T, Abstraction)| N]}
-			    end
-		    end, {[], []}, Traces).
+    % PosNeg =
+    % 	lists:foldl(fun (Trace, {P, N}) ->
+    % 			    case posneg(Trace) of
+    % 			      {T, []} -> {[process(T, Abstraction)| P], N};
+    % 			      {T, _} -> {P, [process(T, Abstraction)| N]}
+    % 			    end
+    % 		    end, {[], []}, Traces).
 
 % Testing process: runs Module:test()
 % and then tells Pid it has finished.
@@ -61,12 +68,12 @@ loop(Msgs) ->
 % Calls combined with their abstractions.
 
 process(Msgs,Hide) ->
-  lists:foldl(fun(Call,Acc) ->
+  lists:reverse(lists:foldl(fun(Call,Acc) ->
                   case catch abstraction(Hide,Call) of
                     {'EXIT',_} -> Acc;
-                    Other -> [ {Other,Call} | Acc ]
+                    _Other -> [ Call | Acc ]
                   end
-              end,[],Msgs).
+              end,[],Msgs)).
 
 % Combine the effect of the hiding function Hide with the
 % hiding of trace info from module_info and test functions
@@ -81,40 +88,29 @@ abstraction(Hide, Call) ->
 % this is the function frequency:init. 
 
 fr_abstraction() ->
-  fun({M,F,_}) when {M,F}=/={frequency,init} -> {M,F} end.
+  fun({M,F,A}) when {M,F}=/={frequency,init} -> {M,F,A} end.
     
-% Splits a list of messages into traces.
+% Parses a list of messages into a nested format reflecting
+% the structures in the test descriptions.
 % Assumes that the list is well formed - start/end messages
-% are properly matched.
+% are properly matched, and so parse by deterministic recursive
+% descent.
 
-split_traces([])-> 
-    [];
+parse([{?tracing,open,Mode}|R1]) ->
+    {Elems,R2} = elems(R1),
+    [{?tracing,close,Mode}|R3]   = R2,
+    {{hd(Mode),Elems},R3}.
 
-split_traces([{?tracing,test_start,[]}|Rest]) ->
-    case lists:splitwith(fun (Msg) -> Msg /= {?tracing,test_end,[]} end,Rest) of 
-	{Trace,[{?tracing,test_end,[]}|Msgs]} -> 
-	    [Trace|split_traces(Msgs)];
-	{_,_} ->
-	    erlang:error("no matching test_end")
-    end;
+elems([{?tracing,close,_}|_R]=In) -> {[],In};
+elems([{?tracing,open,_}|_R]=In) ->
+    {Elem,R2} = parse(In),
+    {Elems,R3} = elems(R2),
+    {[Elem|Elems],R3};
+elems([X|R]) ->
+    {Elems,R2} = elems(R),
+    {[X|Elems],R2};
+elems(_) -> 'EXIT'.
 
-split_traces([{?tracing,test_group_start,[]}|Rest]) ->
-    case  lists:splitwith(fun (Msg) -> Msg /= {?tracing,test_group_end,[]} end,Rest) of
-	{Trace,[{?tracing,test_group_end,[]}|Msgs]} -> 
-	    [split_traces(Trace)|split_traces(Msgs)];
-	{_,_} ->
-	    erlang:error("no matching test_group_end")
-    end;
-
-split_traces(Msgs) ->
-    {Trace,Rest}
-	= lists:splitwith(fun not_end/1,Msgs),
-     [Trace|split_traces(Rest)].
-
-% Aux function: used in splitting checks for "start" messages.
-
-not_end(Msg) ->
-    Msg /= {?tracing,test_group_start,[]} andalso  Msg /= {?tracing,test_start,[]}.
 
 % Check for consistency
 % Returns all inconsistent pairs, if any.
