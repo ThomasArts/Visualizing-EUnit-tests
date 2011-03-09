@@ -5,6 +5,8 @@
 
 -export([start/1,start/2,tester/2,consis_check/1,consistent/1]).
 
+-export([posneg/1]).
+
 -include("../include/tracing.hrl").
 
 % Top-level function.
@@ -13,12 +15,21 @@
 start(Module) ->
     start(Module,fr_abstraction()).
 
-start(Module,Hide) ->
+start(Module, Abstraction) ->
     eunit_tracing:t(),
-    spawn(?MODULE,tester,[Module,self()]),
+    spawn(?MODULE, tester, [Module, self()]),
     Msgs = loop([]),
-    Trace = process(Msgs,Hide),
-    split_traces(Trace).
+    Traces = split_traces([Call || {_, _, _, Call} <- Msgs]),
+    %% flatten to one list with traces (no nesting)
+    PosNeg =
+	lists:foldl(fun (Trace, {P, N}) ->
+			    case posneg(Trace) of
+			      {T, []} -> {[process(T, Abstraction)| P], N};
+			      {T, _} -> {P, [process(T, Abstraction)| N]}
+			    end
+		    end, {[], []}, Traces).
+
+
 
 % Testing process: runs Module:test()
 % and then tells Pid it has finished.
@@ -51,7 +62,7 @@ loop(Msgs) ->
 %  - remove calls in the Hide list.
 
 process(Msgs,Hide) ->
-  lists:foldl(fun({_,_,_,Call},Acc) ->
+  lists:foldl(fun(Call,Acc) ->
                   case catch abstraction(Hide,Call) of
                     {'EXIT',_} -> Acc;
                     Other -> [ {Other,Call} | Acc ]
@@ -59,8 +70,9 @@ process(Msgs,Hide) ->
               end,[],Msgs).
 
 %% How do we ensure that M==Mod
-abstraction(Hide,Call) ->
-  (fun({M,F,A}) when (F =/= module_info orelse F=/=test) -> Hide({M,F,A}) end)(Call).
+abstraction(Hide, Call) ->
+    fun ({M, F, A}) when F =/= module_info orelse F =/= test -> Hide({M, F, A})
+    end(Call).
 
 % Computes a particular Hide list.
 % Always want to exclude the latter two elements.
@@ -123,6 +135,11 @@ is_initial([I|Ps],[J|Ns])
 is_initial(_,_) ->
     false.
     
-	       
+posneg(Trace) ->
+  lists:splitwith(fun({eunit_tracing,test_negative,_}) ->
+                       false;
+                      (_) ->
+                       true
+                   end,Trace).
     
 
