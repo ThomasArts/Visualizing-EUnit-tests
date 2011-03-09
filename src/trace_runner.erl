@@ -29,8 +29,6 @@ start(Module, Abstraction) ->
 			    end
 		    end, {[], []}, Traces).
 
-
-
 % Testing process: runs Module:test()
 % and then tells Pid it has finished.
 
