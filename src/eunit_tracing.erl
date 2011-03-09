@@ -2,8 +2,7 @@
 
 -export([t/0,t/1]).
 
--export([test_start/0, test_end/0, test_group_start/0,
-         test_group_end/0, test_negative/0, test_negative/1]).
+-export([test_start/0, test_end/0, test_negative/0, test_negative/1]).
 
 -export([map_tuple/2, test_wrap/1, test__wrap/1, negative_wrap/1]).
 
@@ -28,8 +27,6 @@ t(Mod)
     erlang:trace_pattern({?tracing, close, '_'}, true, [local]),    
     erlang:trace_pattern({?tracing, test_start, '_'}, true, [local]),
     erlang:trace_pattern({?tracing, test_end, '_'}, true, [local]),    
-    erlang:trace_pattern({?tracing, test_group_start, '_'}, true, [local]),
-    erlang:trace_pattern({?tracing, test_group_end, '_'}, true, [local]),    
     erlang:trace_pattern({?tracing, test_negative, '_'}, true, [local]),    
     erlang:trace_pattern({Mod, '_', '_'}, true, [global]).
 
@@ -47,12 +44,6 @@ test_start() ->
     ok.
 
 test_end() ->
-    ok.
-
-test_group_start() ->
-    ok.
-
-test_group_end() ->
     ok.
 
 test_negative() ->
@@ -103,6 +94,11 @@ test__wrap(F)
 test__wrap(F)
   when is_tuple(F) ->
     case F of
+	{setup,Setup,Tests} ->
+	    {setup,
+	     open_(setup),
+	     close_(setup),
+	     {setup,Setup,test__wrap(Tests)}};
 	{setup,Setup,Teardown,Tests} ->
 	    {setup,
 	     open_(setup),
@@ -118,14 +114,24 @@ test__wrap(F)
 	     open_(inparallel),
 	     close_(inparallel),                            % not an error; do them in order so
 	     {inorder, lists:map(fun test__wrap/1,Tests)}}; % as to separate traces.
+	{inparallel,_,Tests} ->
+	    {setup,
+	     open_(inparallel),
+	     close_(inparallel),                            % not an error; do them in order so
+	     {inorder, lists:map(fun test__wrap/1,Tests)}}; % as to separate traces.
+	{foreach,Setup,Teardown,Tests} ->
+	    {setup,
+	     open_(foreach),
+	     close_(foreach),
+	     {foreach,Setup,Teardown,test__wrap(Tests)}};
 	_ ->    
 	    map_tuple(fun test__wrap/1,F)
     end;
 test__wrap(F)
   when is_list(F)->
     {setup,
-     fun () -> open(list) end,
-     fun (_) -> close(list) end,
+     open_(list),
+     close_(list),
      lists:map(fun test__wrap/1,F)};
 test__wrap(F) ->
     F.

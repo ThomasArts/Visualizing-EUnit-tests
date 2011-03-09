@@ -20,6 +20,7 @@ start(Module, Abstraction) ->
     spawn(?MODULE, tester, [Module, self()]),
     Msgs = loop([]),
     Traces = split_traces([Call || {_, _, _, Call} <- Msgs]),
+    exit(Traces),
     %% flatten to one list with traces (no nesting)
     PosNeg =
 	lists:foldl(fun (Trace, {P, N}) ->
@@ -42,10 +43,10 @@ tester(Module,Pid) ->
     after 1000 ->
 	    ok
     end,
-    Pid!finished.
+    Pid ! finished.
 
 % Loop to collect messages in a list
-% until the finish message is received.
+% until the finished message is received.
 
 loop(Msgs) ->
     receive
@@ -56,8 +57,8 @@ loop(Msgs) ->
     end.
 
 % process messages
-%  - remove the outermost tuple
-%  - remove calls in the Hide list.
+% Hide messages by the Hide function and abstraction function.
+% Calls combined with their abstractions.
 
 process(Msgs,Hide) ->
   lists:foldl(fun(Call,Acc) ->
@@ -67,13 +68,17 @@ process(Msgs,Hide) ->
                   end
               end,[],Msgs).
 
-%% How do we ensure that M==Mod
+% Combine the effect of the hiding function Hide with the
+% hiding of trace info from module_info and test functions
+% in all modules.
+
 abstraction(Hide, Call) ->
     fun ({M, F, A}) when F =/= module_info orelse F =/= test -> Hide({M, F, A})
     end(Call).
 
-% Computes a particular Hide list.
-% Always want to exclude the latter two elements.
+% Computes a particular hiding function: hide the elements
+% on which the function is not defined. In the defalut case
+% this is the function frequency:init. 
 
 fr_abstraction() ->
   fun({M,F,_}) when {M,F}=/={frequency,init} -> {M,F} end.
@@ -125,6 +130,9 @@ consis_check({Pos,Neg}) ->
     [ {Ps,Ns} || Ps <- Pos,
 		 Ns <- Neg, is_initial(Ps,Ns) ].
 
+% is_initial(Xs,Ys) is true iff Ys is an
+% initial segment of Xs.
+
 is_initial(_,[]) ->
     true;
 is_initial([I|Ps],[J|Ns])
@@ -132,6 +140,11 @@ is_initial([I|Ps],[J|Ns])
     is_initial(Ps,Ns);
 is_initial(_,_) ->
     false.
+
+% Split a list before the first occurrence of
+%  {eunit_tracing,test_negative,_}
+% Second element of the pair will be [] iff that
+% tuple doesn't occur, i.e. trace is positive.
     
 posneg(Trace) ->
   lists:splitwith(fun({eunit_tracing,test_negative,_}) ->
