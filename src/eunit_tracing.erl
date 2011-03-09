@@ -5,8 +5,7 @@
 -export([test_start/0, test_end/0, test_group_start/0,
          test_group_end/0, test_negative/0, test_negative/1]).
 
--export([map_tuple/2, test_wrap/1, test__wrap/1,
-         test__group_wrap/1, negative_wrap/1]).
+-export([map_tuple/2, test_wrap/1, test__wrap/1, negative_wrap/1]).
 
 -include("../include/tracing.hrl").
 
@@ -25,6 +24,8 @@ t(Mod)
     code:load_file(Mod),
     code:load_file(addTestSuffix(Mod)),
     erlang:trace(all, true, [call]),
+    erlang:trace_pattern({?tracing, open, '_'}, true, [local]),
+    erlang:trace_pattern({?tracing, close, '_'}, true, [local]),    
     erlang:trace_pattern({?tracing, test_start, '_'}, true, [local]),
     erlang:trace_pattern({?tracing, test_end, '_'}, true, [local]),    
     erlang:trace_pattern({?tracing, test_group_start, '_'}, true, [local]),
@@ -60,6 +61,18 @@ test_negative() ->
 test_negative(Test) ->
     Test.
 
+open(_) ->
+     ok.
+
+open_(Atom) ->
+    fun () -> open(Atom) end.
+
+close(_) ->
+     ok.
+
+close_(Atom) ->
+    fun (_) -> close(Atom) end.
+
 %%
 %% Wrapping up tests
 %%
@@ -92,40 +105,31 @@ test__wrap(F)
     case F of
 	{setup,Setup,Teardown,Tests} ->
 	    {setup,
-	     % fun () ->
-	     % 	     test_group_start(),
-	     % 	     Setup()
-	     % end,
-	     Setup,
-	     % fun (R) ->
-	     % 	     Teardown(R),
-	     % 	     test_group_end()
-	     % end,
-	     Teardown,
-	     test__wrap(Tests)};
+	     open_(setup),
+	     close_(setup),
+	     {setup,Setup,Teardown,test__wrap(Tests)}};
+	{inorder,Tests} ->
+	    {setup,
+	     open_(inorder),
+	     close_(inorder),
+	     {inorder, lists:map(fun test__wrap/1,Tests)}};
+	{inparallel,Tests} ->
+	    {setup,
+	     open_(inparallel),
+	     close_(inparallel),                            % not an error; do them in order so
+	     {inorder, lists:map(fun test__wrap/1,Tests)}}; % as to separate traces.
 	_ ->    
 	    map_tuple(fun test__wrap/1,F)
     end;
 test__wrap(F)
   when is_list(F)->
     {setup,
-     fun () -> test_group_start() end,
-     fun (_) -> test_group_end() end,
+     fun () -> open(list) end,
+     fun (_) -> close(list) end,
      lists:map(fun test__wrap/1,F)};
 test__wrap(F) ->
     F.
 
-%% Wrap a group (list) of tests.
-%% Uses a fixture to do the wrapping.
-
-%% 2/3/11 No longer used: folded into test__wrap/1
-
-test__group_wrap(Tests) ->
-	    [{setup,
-	      fun () -> test_group_start() end,
-	      fun (_) -> test_group_end() end,
-	      lists:map(fun test__wrap/1,Tests)}
-	    ].  
 
 %% Mark a test as negative.
 %% Used in the redefinition of _assertError etc.

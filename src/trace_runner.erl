@@ -17,8 +17,8 @@ start(Module,Hide) ->
     eunit_tracing:t(),
     spawn(?MODULE,tester,[Module,self()]),
     Msgs = loop([]),
-    Trace = process(Msgs,Hide),
-    split_traces(Trace).
+    Trace = process(Msgs,Hide).%,
+    %split_traces(Trace).
 
 % Testing process: runs Module:test()
 % and then tells Pid it has finished.
