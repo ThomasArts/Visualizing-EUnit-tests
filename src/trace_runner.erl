@@ -25,7 +25,10 @@ start(Module, _Abstraction) ->
     CallsF = process(Calls,fr_abstraction()),
     io:format("Printing filtered calls~n",[]),
     io:format("~p~n",[CallsF]),
-    Traces = parse(CallsF),
+    Structs = parse(CallsF),
+    io:format("Printing parsed structure~n",[]),
+    io:format("~p~n",[Structs]),
+    Traces = flatten_struct(Structs),
     io:format("Printing traces~n",[]),
     io:format("~p~n",[Traces]).
     %% flatten to one list with traces (no nesting)
@@ -96,14 +99,24 @@ fr_abstraction() ->
 % are properly matched, and so parse by deterministic recursive
 % descent.
 
-parse([{?tracing,open,Mode}|R1]) ->
+parse(Trace) ->
+    parse(Trace,[]).
+
+parse([_|_]=Trace,Tests) ->
+    {Test,Rest} = parse_test(Trace),
+    parse(Rest,[Test|Tests]);
+parse([],Tests) ->
+    lists:reverse(Tests).
+    
+
+parse_test([{?tracing,open,Mode}|R1]) ->
     {Elems,R2} = elems(R1),
     [{?tracing,close,Mode}|R3]   = R2,
     {{hd(Mode),Elems},R3}.
 
 elems([{?tracing,close,_}|_R]=In) -> {[],In};
 elems([{?tracing,open,_}|_R]=In) ->
-    {Elem,R2} = parse(In),
+    {Elem,R2} = parse_test(In),
     {Elems,R3} = elems(R2),
     {[Elem|Elems],R3};
 elems([X|R]) ->
@@ -111,6 +124,38 @@ elems([X|R]) ->
     {[X|Elems],R2};
 elems(_) -> 'EXIT'.
 
+
+% Flatten structure - coming from parse - into a single list of traces.
+% Result is a list of traces (i.e. a list of lists).
+
+flatten_struct(Struct) ->
+     lists:concat(lists:map(fun flatten_test_desc/1,Struct)).
+
+flatten_test_desc({test,Trace}) ->
+    [Trace];
+
+flatten_test_desc({inparallel,Trace}) ->
+    lists:map(fun flatten_test_desc/1,Trace);
+
+flatten_test_desc({inorder,Trace}) ->
+   [join(lists:map(fun flatten_test_desc/1, Trace))];
+
+% flatten_test_desc({list,Trace}) ->
+%    flatten_test_desc({inorder,Trace});
+
+flatten_test_desc({_,_}) ->
+    [dummy];
+
+flatten_test_desc(L) when is_list(L) ->
+    L.
+
+% Ensuring the correct nesting of (lists of)* ...
+
+join([]) ->
+    [];
+join([[[X]]|Xss]) ->
+    [X|join(Xss)].
+    
 
 % Check for consistency
 % Returns all inconsistent pairs, if any.

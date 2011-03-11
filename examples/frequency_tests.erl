@@ -17,34 +17,41 @@
 
 %% A single positive test.
 
-% startstop_test() -> 
-%     ?assertMatch(true,start([])),
-%     ?assertMatch(ok,stop()),
-%     ?assertMatch(true,start([])),
-%     ?assertMatch(ok,stop()).
+startstop_test() -> 
+    ?assertMatch(true,start([])),
+    ?assertMatch(ok,stop()),
+    ?assertMatch(true,start([])),
+    ?assertMatch(ok,stop()).
     
 %% A group of positive tests.
 
-% startstop_test_() ->
-%     {inparallel,
-%      [ ?_assertMatch(true,start([])),
-%        ?_assertMatch(ok,stop()),
-%        ?_assertMatch(true,start([])),
-%        ?_assertMatch(ok,stop())]}.
+startstop_test_() ->
+    {inparallel,
+     [ ?_assertMatch(true,start([])),
+       ?_assertMatch(ok,stop()),
+       ?_assertMatch(true,start([])),
+       ?_assertMatch(ok,stop())]}.
+
+startstop_INORDER_test_() ->
+    {inorder,
+     [ ?_assertMatch(true,start([])),
+       ?_assertMatch(ok,stop()),
+       ?_assertMatch(true,start([])),
+       ?_assertMatch(ok,stop())]}.
 
 %% A single negative test.
 
-% stopFirst_test() ->
-%     ?assertError(badarg,stop()).
+stopFirst_test() ->
+    ?assertError(badarg,stop()).
 
 %% A fixture that also contains a negative test.
 
-% startTwice_test_() ->
-%     [{setup,
-%       fun ()  -> start([]) end,       
-%       fun (_) -> stop() end,         
-%       ?_assertError(badarg,start([]))  
-%      }].
+startTwice_test_() ->
+    [{setup,
+      fun ()  -> start([]) end,       
+      fun (_) -> stop() end,         
+      ?_assertError(badarg,start([]))  
+     }].
 
 setup_test_() ->
     {setup,
