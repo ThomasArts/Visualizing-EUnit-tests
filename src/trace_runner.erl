@@ -25,7 +25,10 @@ start(Module, _Abstraction) ->
     CallsF = process(Calls,fr_abstraction()),
     io:format("Printing filtered calls~n",[]),
     io:format("~p~n",[CallsF]),
-    Traces = parse(CallsF),
+    Structs = parse(CallsF),
+    io:format("Printing parsed structure~n",[]),
+    io:format("~p~n",[Structs]),
+    Traces = flatten_struct(Structs),
     io:format("Printing traces~n",[]),
     io:format("~p~n",[Traces]).
     %% flatten to one list with traces (no nesting)
@@ -123,9 +126,36 @@ elems(_) -> 'EXIT'.
 
 
 % Flatten structure - coming from parse - into a single list of traces.
+% Result is a list of traces (i.e. a list of lists).
 
-flatten_str() ->
-     ok.
+flatten_struct(Struct) ->
+     lists:concat(lists:map(fun flatten_test_desc/1,Struct)).
+
+flatten_test_desc({test,Trace}) ->
+    [Trace];
+
+flatten_test_desc({inparallel,Trace}) ->
+    lists:map(fun flatten_test_desc/1,Trace);
+
+flatten_test_desc({inorder,Trace}) ->
+   [join(lists:map(fun flatten_test_desc/1, Trace))];
+
+% flatten_test_desc({list,Trace}) ->
+%    flatten_test_desc({inorder,Trace});
+
+flatten_test_desc({_,_}) ->
+    [dummy];
+
+flatten_test_desc(L) when is_list(L) ->
+    L.
+
+% Ensuring the correct nesting of (lists of)* ...
+
+join([]) ->
+    [];
+join([[[X]]|Xss]) ->
+    [X|join(Xss)].
+    
 
 % Check for consistency
 % Returns all inconsistent pairs, if any.

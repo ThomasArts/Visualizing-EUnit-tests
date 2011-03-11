@@ -32,6 +32,13 @@ startstop_test_() ->
        ?_assertMatch(true,start([])),
        ?_assertMatch(ok,stop())]}.
 
+startstop_INORDER_test_() ->
+    {inorder,
+     [ ?_assertMatch(true,start([])),
+       ?_assertMatch(ok,stop()),
+       ?_assertMatch(true,start([])),
+       ?_assertMatch(ok,stop())]}.
+
 %% A single negative test.
 
 stopFirst_test() ->
