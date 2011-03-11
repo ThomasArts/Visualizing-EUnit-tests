@@ -7,6 +7,9 @@
 
 -export([posneg/1]).
 
+-compile(export_all).
+
+
 -include("../include/tracing.hrl").
 
 % Top-level function.
@@ -30,15 +33,17 @@ start(Module, _Abstraction) ->
     io:format("~p~n",[Structs]),
     Traces = flatten_struct(Structs),
     io:format("Printing traces~n",[]),
-    io:format("~p~n",[Traces]).
-    %% flatten to one list with traces (no nesting)
-    % PosNeg =
-    % 	lists:foldl(fun (Trace, {P, N}) ->
-    % 			    case posneg(Trace) of
-    % 			      {T, []} -> {[process(T, Abstraction)| P], N};
-    % 			      {T, _} -> {P, [process(T, Abstraction)| N]}
-    % 			    end
-    % 		    end, {[], []}, Traces).
+    io:format("~p~n",[Traces]),
+    PosNeg =
+     	lists:foldl(fun (Trace, {P, N}) ->
+     			    case posneg(Trace) of
+				{T, []} -> { [T| P], N};
+				{T, _} -> {P, [T| N]}
+     			    end
+     		    end, {[], []}, Traces),
+    io:format("Printing positive / negative traces~n",[]),
+    io:format("~p~n",[PosNeg]).
+
 
 % Testing process: runs Module:test()
 % and then tells Pid it has finished.
@@ -158,11 +163,8 @@ flatten_test_desc(L) when is_list(L) ->
 
 % Ensuring the correct nesting of (lists of)* ...
 
-join([]) ->
-    [];
-join([[[X]]|Xss]) ->
-    [X|join(Xss)].
-    
+
+join(Xs) -> lists:concat(lists:concat(Xs)).    
 
 % Check for consistency
 % Returns all inconsistent pairs, if any.

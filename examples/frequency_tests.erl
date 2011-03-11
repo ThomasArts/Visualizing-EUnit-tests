@@ -39,30 +39,30 @@ startstop_INORDER_test_() ->
        ?_assertMatch(true,start([])),
        ?_assertMatch(ok,stop())]}.
 
-% %% A single negative test.
+% A single negative test.
 
-% stopFirst_test() ->
-%     ?assertError(badarg,stop()).
+stopFirst_test() ->
+    ?assertError(badarg,stop()).
 
-%% A fixture that also contains a negative test.
+% A fixture that also contains a negative test.
 
-% startTwice_test_() ->
-%     [{setup,
-%       fun ()  -> start([]) end,       
-%       fun (_) -> stop() end,         
-%       ?_assertError(badarg,start([]))  
-%      }].
+startTwice_test_() ->
+    [{setup,
+      fun ()  -> start([]) end,       
+      fun (_) -> stop() end,         
+      ?_assertError(badarg,start([]))  
+       }].
 
-% setup_test_() ->
-%     {setup,
-%      fun ()  -> start([1]),stop() end,       
-%      fun (_) -> start([4]),stop() end,         
-%      {setup,
-%       fun ()  -> start([2]),stop() end,       
-%       fun (_) -> start([3]),stop() end,         
-%       fun () -> (fun () -> ok end) end  
-%      }  
-%     }.
+setup_test_() ->
+    {setup,
+     fun ()  -> start([1]),stop() end,       
+     fun (_) -> start([4]),stop() end,         
+     {setup,
+      fun ()  -> start([2]),stop() end,       
+      fun (_) -> start([3]),stop() end,         
+      fun () -> (fun () -> ok end) end  
+     }  
+    }.
 
 % stopTwice_test_() ->
 %   start([]),stop(),?_assertError(badarg,stop()).   % a second stop causes failure
