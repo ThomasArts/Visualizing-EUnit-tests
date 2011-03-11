@@ -98,12 +98,12 @@ test__wrap(F)
 	    {setup,
 	     open_(setup),
 	     close_(setup),
-	     {setup,Setup,test__wrap(Tests)}};
+	     {setup,test__wrap(Setup),test__wrap(Tests)}};
 	{setup,Setup,Teardown,Tests} ->
 	    {setup,
 	     open_(setup),
 	     close_(setup),
-	     {setup,Setup,Teardown,test__wrap(Tests)}};
+	     {setup,test__wrap(Setup),teardown_wrap(Teardown),test__wrap(Tests)}};
 	{inorder,Tests} ->
 	    {setup,
 	     open_(inorder),
@@ -123,7 +123,7 @@ test__wrap(F)
 	    {setup,
 	     open_(foreach),
 	     close_(foreach),
-	     {foreach,Setup,Teardown,test__wrap(Tests)}};
+	     {foreach,test__wrap(Setup),teardown_wrap(Teardown),test__wrap(Tests)}};
 	_ ->    
 	    map_tuple(fun test__wrap/1,F)
     end;
@@ -136,6 +136,12 @@ test__wrap(F)
 test__wrap(F) ->
     F.
 
+teardown_wrap(F) ->
+    fun (R) ->
+	    test_start(),
+	    F(R),
+	    test_end()
+    end.	    
 
 %% Mark a test as negative.
 %% Used in the redefinition of _assertError etc.

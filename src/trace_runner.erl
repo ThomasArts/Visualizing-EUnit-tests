@@ -135,19 +135,26 @@ flatten_test_desc({test,Trace}) ->
     [Trace];
 
 flatten_test_desc({inparallel,Trace}) ->
-    lists:map(fun flatten_test_desc/1,Trace);
+   lists:concat(lists:map(fun flatten_test_desc/1,Trace));
 
 flatten_test_desc({inorder,Trace}) ->
    [join(lists:map(fun flatten_test_desc/1, Trace))];
 
-% flatten_test_desc({list,Trace}) ->
-%    flatten_test_desc({inorder,Trace});
+flatten_test_desc({setup,Trace}) ->
+    [join(lists:map(fun flatten_test_desc/1, Trace))];
+
+flatten_test_desc({list,Trace}) ->
+    flatten_test_desc({inorder,Trace});
+
+flatten_test_desc(dummy) ->
+    [dummy];
 
 flatten_test_desc({_,_}) ->
-    [dummy];
+    [[dummy]];
 
 flatten_test_desc(L) when is_list(L) ->
     L.
+
 
 % Ensuring the correct nesting of (lists of)* ...
 
