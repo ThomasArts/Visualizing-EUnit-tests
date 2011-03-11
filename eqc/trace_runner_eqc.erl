@@ -20,40 +20,42 @@ prop_is_initial() ->
 
 
 prop_parse() ->
-  Modes = [m1,m2,m3],
-  MOC = [ {M,{?tracing,open,[M]},{?tracing,close,[M]}} || M<-Modes ],
-  ?FORALL(Segments,segments(Modes),
-          length(parse(Segments)) < 5).
+  ?FORALL(Struct,struct({m,f,[a1]}),
+          parse(pp([Struct])) == [Struct]).
 
 
-%% generator for nested segments  
-segments(Modes) ->
-  ?SIZED(Size,segments(Modes,call,Size)).
+prop_flatten_struct() -> 
+  ?FORALL(S,struct(call),
+          begin
+            trace_runner:flatten_struct([S]),
+            true
+          end).
 
-segments(_Modes,Gen,0) ->
-  list(Gen);
-segments(Modes,Gen,Size) ->
-  oneof([segments(Modes,Gen,0)]++
-        [ ?LETSHRINK(SmallerSegments,list(segments(Modes,Gen,Size div 4)),
-                     {M,SmallerSegments}) || M<-Modes]
-       ).
-  
+pp([]) ->
+  [];
+pp([{Mode,List}|T]) ->
+  [ {?tracing,open,[Mode]}] ++ pp(List) ++ [{?tracing,close,[Mode]}] ++ pp(T);
+pp(CallList) ->
+  CallList.
 
-struct() ->
-  ?SIZED(Size,struct(call,Size)).
+struct(Gen) ->
+  ?SIZED(Size,struct(Gen,Size)).
 
 struct(Gen,0) ->
   test(Gen);
 struct(Gen,Size) ->
   oneof([test(Gen),
-         inparallel(Gen,Size-1)
+         mode(inparallel,Gen,Size div 4),
+         mode(inorder,Gen,Size div 4),
+         mode(setup,Gen, Size div 4)
         ]).
 
 test(Gen) ->
   {test,list(Gen)}.
 
-inparallel(Gen,Size) ->
-  {inparallel,list(struct(Gen,Size div 4))}.
+mode(Tag,Gen,Size) ->
+  {Tag,list(struct(Gen,Size))}.
+
 
 implies(P1,P2) ->
   (not P1) orelse P2.
