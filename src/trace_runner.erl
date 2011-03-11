@@ -96,14 +96,24 @@ fr_abstraction() ->
 % are properly matched, and so parse by deterministic recursive
 % descent.
 
-parse([{?tracing,open,Mode}|R1]) ->
+parse(Trace) ->
+    parse(Trace,[]).
+
+parse([_|_]=Trace,Tests) ->
+    {Test,Rest} = parse_test(Trace),
+    parse(Rest,[Test|Tests]);
+parse([],Tests) ->
+    lists:reverse(Tests).
+    
+
+parse_test([{?tracing,open,Mode}|R1]) ->
     {Elems,R2} = elems(R1),
     [{?tracing,close,Mode}|R3]   = R2,
     {{hd(Mode),Elems},R3}.
 
 elems([{?tracing,close,_}|_R]=In) -> {[],In};
 elems([{?tracing,open,_}|_R]=In) ->
-    {Elem,R2} = parse(In),
+    {Elem,R2} = parse_test(In),
     {Elems,R3} = elems(R2),
     {[Elem|Elems],R3};
 elems([X|R]) ->
@@ -111,6 +121,11 @@ elems([X|R]) ->
     {[X|Elems],R2};
 elems(_) -> 'EXIT'.
 
+
+% Flatten structure - coming from parse - into a single list of traces.
+
+flatten_str() ->
+     ok.
 
 % Check for consistency
 % Returns all inconsistent pairs, if any.
