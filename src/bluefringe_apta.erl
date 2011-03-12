@@ -21,8 +21,8 @@
 
 generateApta({Sp, Sm}) ->
     Agd = #agd{},
-    ESp = positiveFromNegative(Sm)++Sp,
-    ExpAgd = recursivelyExpandNodes(Agd, [{0, Sm, ESp}]),
+    %% ESp = positiveFromNegative(Sm)++Sp,
+    ExpAgd = recursivelyExpandNodes(Agd, [{0, Sm, Sp}]),
     #fa{st = generateList(ExpAgd#agd.lastSt),
      alph = ExpAgd#agd.alph, iSt = 0, tr = ExpAgd#agd.tr,
      fSt = ExpAgd#agd.rSt}.
@@ -32,11 +32,11 @@ generateApta({Sp, Sm}) ->
 %% Internal functions
 %%====================================================================
 
-positiveFromNegative(List) -> lists:map(fun removeLast/1, List).
+%% positiveFromNegative(List) -> lists:map(fun removeLast/1, List).
 
-removeLast([]) -> [];
-removeLast([_]) -> [];
-removeLast([Head|Tail]) when Tail =/= [] -> [Head|removeLast(Tail)].
+%% removeLast([]) -> [];
+%% removeLast([_]) -> [];
+%% removeLast([Head|Tail]) when Tail =/= [] -> [Head|removeLast(Tail)].
 
 generateList(N) -> generateList(N, []).
 generateList(0, List) -> [0 | List];
@@ -49,42 +49,44 @@ cleanTransitions(List) ->
     lists:map(Remover, List).
 
 %% addToFail adds a transition to the list assuming it was a negative one
-addToFail({Transition, State, Failure, Acceptance}, [Transition|Tail]) ->
+addToFail([Transition|Tail], {Transition, State, Failure, Acceptance}) ->
     {Transition, State, [Tail|Failure], Acceptance}.
 
 %% addToAccept adds a transition to the list assuming it was a positive one
-addToAccept({Transition, State, Failure, Acceptance}, [Transition|Tail]) ->
+addToAccept([Transition|Tail], {Transition, State, Failure, Acceptance}) ->
     {Transition, State, Failure, [Tail|Acceptance]}.
 
-%% addPath expands a route and registers the transition
-% the first parameter is {a, addToAccept} for positive traces
-%                     or {f, addToFail} for negative traces
-addPath({a, _}, Agd, List, [], _State) -> {result, Agd, List};
-addPath({f, _}, Agd, _List, [], State) ->
-    NewAgd = Agd#agd{rSt = sets:add_element(State, Agd#agd.rSt)},
-    {crash, NewAgd};
-addPath({S, F}, Agd, List, FirstPath, State) ->
-    addPath({S, F}, Agd, [], List, FirstPath, State).
+addFailingState(StateNum, #agd{rSt = RSt} = Agd) ->
+    Agd#agd{rSt = sets:add_element(StateNum, RSt)}.
+addSymbol(Symbol, #agd{alph = Alph} = Agd) ->
+    Agd#agd{alph = sets:add_element(Symbol, Alph)}.
+addTransition(Transition, #agd{tr = Tr} = Agd) ->
+    Agd#agd{tr = [Transition|Tr]}.
 
-addPath({S, F}, Agd, ResList, [], [FPHead|_] = FP, State) ->
-    NewState = Agd#agd.lastSt + 1,
-    TmpAgd = Agd#agd{lastSt = NewState,
-		     alph = sets:add_element(FPHead, Agd#agd.alph),
-		     tr = [{State, FPHead, NewState}|Agd#agd.tr]},
-    addPath({S, F}, TmpAgd, ResList, [{FPHead, NewState, [], []}], FP, State);
-addPath({_, F}, Agd, ResList, [({FPHead, _NewSt, _, _} = HTail)|LTail],
-	[FPHead|_] = FP, _State) ->
-    NewList = LTail ++ [F(HTail, FP)|ResList],
-    {result, Agd, NewList};
-addPath({S, F}, Agd, ResList, [HTail|LTail], FP, State) ->
-    addPath({S, F}, Agd, [HTail|ResList], LTail, FP, State).
+%% expandTrace expands a route and registers the transition
+% expandTrace({Type, AddFun, Trace, StateNum}=TraceInfo, {Agd, Buffer}) -> {Agd, Buffer}
+expandTrace({pos, _, [], _}, {Agd, Buffer}) -> {Agd, Buffer};
+expandTrace({neg, _, [], StateNum}, {Agd, Buffer}) ->
+    {addFailingState(StateNum, Agd), Buffer};
+expandTrace({_, Add, [H|_] = Trace, StateNum}, {Agd, Buffer}) ->
+    case searchMatchInBuffer(H, Buffer) of
+	no_match ->
+	    NewState = Agd#agd.lastSt + 1,
+	    NewAgd = addSymbol(H, addTransition({StateNum, H, NewState},
+						Agd#agd{lastSt = NewState})),
+	    NewBufferEntry = {H, NewState, [], []},
+	    {NewAgd, [Add(Trace, NewBufferEntry)|Buffer]};
+	{Match, RestOfBuffer} -> {Agd, [Add(Trace, Match)|RestOfBuffer]}
+    end.
 
-addToAcceptExtra(Agd, ExpandedTransitions, FirstAcceptance, State) ->
-    addPath({a, fun addToAccept/2}, Agd, ExpandedTransitions,
-	    FirstAcceptance, State).
-addToFailExtra(Agd, ExpandedTransitions, FirstFailure, State) ->
-    addPath({f, fun addToFail/2}, Agd, ExpandedTransitions,
-	    FirstFailure, State).
+searchMatchInBuffer(H, B) ->
+    searchMatchInBuffer([], H, B).
+searchMatchInBuffer(_, _, []) -> no_match;
+searchMatchInBuffer(Buffer, Head,
+		    [{Head, _, _, _} = Match|Tail]) ->
+    {Match, Buffer++Tail};
+searchMatchInBuffer(Buffer, H, [NoMatch|Tail]) ->
+    searchMatchInBuffer([NoMatch|Buffer], H, Tail).
 
 checkConflicts(Failure, Acceptance) ->
     Ends = lists:filter(fun ([]) -> true; (_) -> false end, Failure),
@@ -96,24 +98,20 @@ checkConflicts(Failure, Acceptance) ->
 
 %% expandOneNode expands one single node and returns a list of
 % new states (and the new agd)
-expandOneNode(Agd, {State, Failure, Acceptance}) ->
+expandOneNode(Agd, {_, Failure, Acceptance} = State) ->
     checkConflicts(Failure, Acceptance),
-    expandOneNode(Agd, [], {State, Failure, Acceptance}).
-expandOneNode(Agd, ExpandedTransitions,
-	      {State, Failure, [FirstAcceptance|TailAcceptance]}) ->
-    {result, NewAgd, NewExpandedT} = addToAcceptExtra(Agd, ExpandedTransitions,
-						      FirstAcceptance, State),
-    expandOneNode(NewAgd, NewExpandedT, {State, Failure, TailAcceptance});
-expandOneNode(Agd, ExpandedTransitions,
-	      {State, [FirstFailure|TailFailure], []}) ->
-    case addToFailExtra(Agd, ExpandedTransitions, FirstFailure, State) of
-	{result, NewAgd, NewExpandedT} ->
-	      expandOneNode(NewAgd, NewExpandedT, {State, TailFailure, []});
-	{crash, NewAgd} -> {NewAgd, []}
-    end;
-expandOneNode(Agd, ExpandedTransitions, {_State, [], []}) ->
-    {Agd, cleanTransitions(ExpandedTransitions)}.
-    
+    expandOneNode1({Agd, []}, State).
+expandOneNode1({Agd, Buffer}, {_, [], []}) ->
+    {Agd, cleanTransitions(Buffer)};
+expandOneNode1(AgdAndBuffer, State) ->
+    {TraceInfo, NewState} = extractTrace(State),
+    expandOneNode1(expandTrace(TraceInfo, AgdAndBuffer), NewState).
+
+extractTrace({StateNum, [FailingTrace|Rest], []}) ->
+    {{neg, fun addToFail/2, FailingTrace, StateNum}, {StateNum, Rest, []}};
+extractTrace({StateNum, FailingTraces, [AcceptanceTrace|Rest]}) ->
+    {{pos, fun addToAccept/2, AcceptanceTrace, StateNum},
+     {StateNum, FailingTraces, Rest}}.
 
 %% expandNodes aplies expandOneNode to each Node passing Agd
 expandNodes(Agd, Nodes) -> expandNodes(Agd, [], Nodes).
@@ -133,3 +131,5 @@ transformToSets(#agd{rSt = RSt, alph = Alph} = Agd) ->
 
 transformFromSets(#agd{rSt = RSt, alph = Alph} = Agd) ->
     Agd#agd{rSt = sets:to_list(RSt), alph = sets:to_list(Alph)}.
+
+
