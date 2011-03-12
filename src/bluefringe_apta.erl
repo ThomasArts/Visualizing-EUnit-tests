@@ -43,10 +43,10 @@ generateList(0, List) -> [0 | List];
 generateList(N, List) when (N > 0) -> generateList(N - 1, [N | List]).
 
 %% cleanTransitions removes the first item from the 4-tuples in the list
-cleanTransitions(Lista) ->
+cleanTransitions(List) ->
     Remover = fun ({_Transition, State, Failure, Acceptance}) ->
     {State, Failure, Acceptance} end,
-    lists:map(Remover, Lista).
+    lists:map(Remover, List).
 
 %% addToFail adds a transition to the list assuming it was a negative one
 addToFail({Transition, State, Failure, Acceptance}, [Transition|Tail]) ->
@@ -65,6 +65,7 @@ addPath({f, _}, Agd, _List, [], State) ->
     {crash, NewAgd};
 addPath({S, F}, Agd, List, FirstPath, State) ->
     addPath({S, F}, Agd, [], List, FirstPath, State).
+
 addPath({S, F}, Agd, ResList, [], [FPHead|_] = FP, State) ->
     NewState = Agd#agd.lastSt + 1,
     TmpAgd = Agd#agd{lastSt = NewState,
@@ -122,11 +123,13 @@ expandNodes(Agd, ExpandedNodes, [NodeToExpand|OtherNodes]) ->
     expandNodes(NewAgd, NewNodes++ExpandedNodes, OtherNodes).
 
 recursivelyExpandNodes(Agd, Nodes) ->
-    recursivelyExpandNodes({Agd#agd{rSt = sets:from_list(Agd#agd.rSt),
-				    alph = sets:from_list(Agd#agd.alph)}, Nodes}).
-recursivelyExpandNodes({Agd, []}) -> Agd#agd{rSt = sets:to_list(Agd#agd.rSt),
-					     alph = sets:to_list(Agd#agd.alph)};
+    recursivelyExpandNodes({transformToSets(Agd), Nodes}).
+recursivelyExpandNodes({Agd, []}) -> transformFromSets(Agd);
 recursivelyExpandNodes({Agd, List}) -> New = expandNodes(Agd, List),
 				       recursivelyExpandNodes(New).
 
+transformToSets(#agd{rSt = RSt, alph = Alph} = Agd) ->
+    Agd#agd{rSt = sets:from_list(RSt), alph = sets:from_list(Alph)}.
 
+transformFromSets(#agd{rSt = RSt, alph = Alph} = Agd) ->
+    Agd#agd{rSt = sets:to_list(RSt), alph = sets:to_list(Alph)}.
