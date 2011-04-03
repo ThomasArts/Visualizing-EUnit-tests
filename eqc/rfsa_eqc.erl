@@ -35,22 +35,23 @@ signedset(G) ->
 %%             {States,elements(States--[BadState]),BadState,Events,
 %%              [Tr || Tr = {From,_,_} <- lists:usort(Trans), From /= BadState]}
 %%            )).
+
 automata() ->
   ?LET({States,Events}, {set(elements([a,b,c,d,e,f,g])),
                          non_empty(set(elements([x,w,y,z])))},
-       {[init,bad] ++ States,init,bad,Events,
-        ?LET(Trs,[{init,elements(Events),oneof([bad | States])} |
-                  transitions([init|States],Events,[bad|[init|States]])],
-            determinize(Trs))}).
+       ?LET(Trs, transitions(Events,States),
+       {[init,bad] ++ States,init,bad,Events,Trs})).
 
-
-subset(Set) ->
-  ?LET(SubSet,list(elements(Set)),lists:usort(SubSet)).
+transitions(Events, States) ->
+    ?LET(Trs, [{init,elements(Events),oneof([bad | States])} |
+	       normal_transitions([init|States], Events, [bad,init|States])],
+	 determinize(Trs)).
 
 %% transitions(States,Events) ->
 %%   list({elements(States),elements(Events),elements(States)}).
-transitions(Froms,Events,Tos) ->
-  ?LET(Trs, list({elements(Froms),elements(Events),elements(Tos)}), lists:usort(Trs)).
+normal_transitions(Froms,Events,Tos) ->
+  ?LET(Trs, list({elements(Froms),elements(Events),elements(Tos)}),
+       lists:usort(Trs)).
 
 determinize([]) -> [];
 determinize([Tr|Trs]) ->
@@ -65,6 +66,8 @@ determinize(DTrs,[Tr={From,Ev,_To}|Trs]) ->
     _ -> determinize(DTrs,Trs)
   end.
 
+subset(Set) ->
+  ?LET(SubSet,list(elements(Set)),lists:usort(SubSet)).
 
   %% [ Tr || Tr = {From, Ev, To} <- Trs,
   %%         [] == [Tr2 || Tr2 = {From2,Ev2,To2} <- Trs,
