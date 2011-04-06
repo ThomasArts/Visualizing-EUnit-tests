@@ -8,6 +8,7 @@ At the moment, we cannot recognize negative traces of that form (work in progres
 ?assertError(case .... of {error,Reason} -> exit(error); Other -> Other end).
 
 How to build
+Install GraphViz if you want to visualize the state machines.
 In ebin directory type "erl -make" or in Erlang shell "make:all()".
  
 How to run
@@ -17,8 +18,15 @@ There is one example, in the examples directory. We use this in our explanation
 - Make sure your path is such that you can run your EUnit tests.
 - In order to generate traces:
    {Pos,Neg} = eunit_to_fsm:dynamic("../examples/frequency_tests.erl",
-                                                          [],fun({M,F,A}) when {M,F}=/={frequency,init} -> {M,F,A} end.).
+                                                          [],fun({M,F,A}) when {M,F}=/={frequency,init} -> {M,F,A} end).
    The abstraction function removes calls to frequency:init/1 from the trace. In order to remove other calls, just make sure the abstraction function is undefined for those values.
+
+- Visualize the state machine:
+   bluefringe:dot({Pos,Neg}).
+
+
+
+The tracing is defined in the function eunit_tracing:t/1. If you happen to have other tracing running during EUnit execution, then you need to modify this function to makes sure our implementation gets the right trace data. Having additional events is no problem, you can filter them by providing an abstraction function.
 
 
 
