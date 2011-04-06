@@ -3,7 +3,7 @@
 % Runs the functions from Module:test() with
 % tracing as provided by eunit_tracing.erl
 
--export([start/1,start/2,tester/2,consis_check/1,consistent/1,parse/1,fr_abstraction/0]).
+-export([start/1,start/2,tester/2,consis_check/1,consistent/1,parse/1]).
 
 -export([posneg/1]).
 
@@ -18,14 +18,14 @@
 start(Module) ->
     start(Module,fr_abstraction()).
 
-start(Module, _Abstraction) ->
+start(Module, Abstraction) ->
     eunit_tracing:t(),
     spawn(?MODULE, tester, [Module, self()]),
     Msgs = loop([]),
     Calls = [Call || {_, _, _, Call} <- Msgs],
     io:format("Printing calls~n",[]),
     io:format("~p~n",[Calls]),
-    CallsF = process(Calls,fr_abstraction()),
+    CallsF = process(Calls,Abstraction),
     io:format("Printing filtered calls~n",[]),
     io:format("~p~n",[CallsF]),
     Structs = parse(CallsF),
@@ -34,15 +34,12 @@ start(Module, _Abstraction) ->
     Traces = flatten_struct(Structs),
     io:format("Printing traces~n",[]),
     io:format("~p~n",[Traces]),
-    PosNeg =
-     	lists:foldl(fun (Trace, {P, N}) ->
-     			    case posneg(Trace) of
-				{T, []} -> { [T| P], N};
-				{T, _} -> {P, [T| N]}
-     			    end
-     		    end, {[], []}, Traces),
-    io:format("Printing positive / negative traces~n",[]),
-    io:format("~p~n",[PosNeg]).
+    lists:foldl(fun (Trace, {P, N}) ->
+     			case posneg(Trace) of
+			     {T, []} -> { [T| P], N};
+			     {T, _} -> {P, [T| N]}
+     			end
+     		 end, {[], []}, Traces).
 
 
 % Testing process: runs Module:test()

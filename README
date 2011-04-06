@@ -1,0 +1,26 @@
+This program takes a set of EUnit tests and generates a state machine that represents the state transitions of the System Under Test. 
+
+In order to make this work, you need an EUnit test suite that contains both positive and negative tests, i.e., have tests with ?assertError (alt. any variant of it). 
+
+How to get negative tests.
+If you use defensive programming, you may have an API that returns errors instead of crashes.
+At the moment, we cannot recognize negative traces of that form (work in progress). That is if you match on error values ?assertMatch({error,Reason},....), then please rewrite this to 
+?assertError(case .... of {error,Reason} -> exit(error); Other -> Other end).
+
+How to build
+In ebin directory type "erl -make" or in Erlang shell "make:all()".
+ 
+How to run
+The main API is in the module eunit_to_fsm.erl.
+There is one example, in the examples directory. We use this in our explanation
+
+- Make sure your path is such that you can run your EUnit tests.
+- In order to generate traces:
+   {Pos,Neg} = eunit_to_fsm:dynamic("../examples/frequency_tests.erl",
+                                                          [],fun({M,F,A}) when {M,F}=/={frequency,init} -> {M,F,A} end.).
+   The abstraction function removes calls to frequency:init/1 from the trace. In order to remove other calls, just make sure the abstraction function is undefined for those values.
+
+
+
+
+

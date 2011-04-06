@@ -14,7 +14,7 @@
 
 -define(negative, '-negative-').
 
-% @spec (filename(),[compiler_option()],[{module(),function()}]) -> {[trace()],[trace()]}
+% @spec (filename(),[compiler_option()],abstraction()) -> {[trace()],[trace()]}
 % @doc Extract traces from EUnit file FileName_tests if it exists, otherwise assume the 
 % tests to be provided in FileName. We trace all calls to functions exported in FileName.
 % Compiler options passed as second argument; functions not be traced as third argument.
@@ -119,10 +119,10 @@ all_traces({clause, _, _Pat, _Guards, Body}, FunForms, SUT, SUTFunctions) ->
   product([all_traces(Expr, FunForms, SUT, SUTFunctions) || Expr <- Body]);
 all_traces({tuple, _, [{atom, _, ?negative}, Expr]}, FunForms, SUT, SUTFunctions) ->
   [append(Trace, {trace,[?negative]}) || Trace <- all_traces(Expr, FunForms, SUT, SUTFunctions)];
-all_traces({tuple, _, [{atom, _, setup}, SetUp, TearDown, Expr]}, FunForms, SUT, SUTFunctions) ->
+all_traces({tuple, _, [{atom, _, setup}, SetUp, _TearDown, Expr]}, FunForms, SUT, SUTFunctions) ->
   [append(Trace1, Trace2) || Trace1 <- all_traces(SetUp, FunForms, SUT, SUTFunctions),
                              Trace2 <- all_traces(Expr, FunForms, SUT, SUTFunctions)];
-all_traces({call, _, Name, Args}=Call, FunForms, SUT, SUTFunctions) ->
+all_traces({call, _, Name, Args}, FunForms, SUT, SUTFunctions) ->
   ArgTraces = product([all_traces(Arg, FunForms, SUT, SUTFunctions) || Arg <- Args]),
   {M,F} = 
     case Name of 
@@ -149,7 +149,7 @@ all_traces({cons,_,Head,Tail},FunForms,SUT,SUTFunctions) ->
                              Trace2 <- all_traces(Tail, FunForms, SUT, SUTFunctions)];
 all_traces({block,_,Exprs},FunForms,SUT,SUTFunctions) ->
    product([all_traces(Expr, FunForms, SUT, SUTFunctions) || Expr <- Exprs]);
-all_traces(Form,_,_,_) ->
+all_traces(_Form,_,_,_) ->
   [].
 
 
