@@ -25,12 +25,12 @@ startstop_test() ->
     
 %% A group of positive tests.
 
-startstop_test_() ->
-    {inparallel,
-     [ ?_assertMatch(true,start([])),
-       ?_assertMatch(ok,stop()),
-       ?_assertMatch(true,start([])),
-       ?_assertMatch(ok,stop())]}.
+% startstop_test_() ->
+%     {inparallel,
+%      [ ?_assertMatch(true,start([])),
+%        ?_assertMatch(ok,stop()),
+%        ?_assertMatch(true,start([])),
+%        ?_assertMatch(ok,stop())]}.
 
 startstop_INORDER_test_() ->
     {inorder,

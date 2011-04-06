@@ -12,11 +12,12 @@
 %% Top-level function to initiate tracing.
 %%
 
-%% Tracing function which traces calls to functions in frequency
-%% as well as "skip" functions here used to punctuate the trace.
+%% Tracing function which traces calls to functions in the argument Mod.erl
+%% plus the "skip" functions defined here and used to punctuate the trace.
 
-t() ->
-    t(frequency).
+%% If you are tracing already, need to integrate this with your tracing
+%% functionality.
+
 
 t(Mod)
   when is_atom(Mod) ->
@@ -25,10 +26,15 @@ t(Mod)
     erlang:trace(all, true, [call]),
     erlang:trace_pattern({?tracing, open, '_'}, true, [local]),
     erlang:trace_pattern({?tracing, close, '_'}, true, [local]),    
-    %erlang:trace_pattern({?tracing, test_start, '_'}, true, [local]),
-    %erlang:trace_pattern({?tracing, test_end, '_'}, true, [local]),    
     erlang:trace_pattern({?tracing, test_negative, '_'}, true, [local]),    
     erlang:trace_pattern({Mod, '_', '_'}, true, [global]).
+
+%% Included for (internal) testing purposes.
+
+t() ->
+    t(frequency).
+
+%% Library function: add _test to a module name.
 
 addTestSuffix(Mod) ->
     list_to_atom(lists:concat([Mod,"_test"])).
@@ -65,7 +71,7 @@ close_(Atom) ->
     fun (_) -> close(Atom) end.
 
 %%
-%% Wrapping up tests
+%% Wrapping up tests: i.e. wrapping in sufficiently 
 %%
 
 %% Map over a tuple (done by conversion to/from a list).
