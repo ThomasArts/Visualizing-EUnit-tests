@@ -133,9 +133,10 @@ wrap_test_function(Tree,FName,Module,Function) ->
 
 wrap_test__function(Tree,FName,Module,Function) ->
     [Clause] = erl_syntax:function_clauses(Tree),
-    [Body] = erl_syntax:clause_body(Clause),
+    Body = erl_syntax:clause_body(Clause),
     ModName = erl_syntax:atom(Module),
     FunName = erl_syntax:atom(Function),
-    RHS = erl_syntax:application(erl_syntax:module_qualifier(ModName,FunName),[Body]),
+    RHS = erl_syntax:application(erl_syntax:module_qualifier(ModName,FunName),
+                                 [erl_syntax:block_expr(Body)]),
     erl_syntax:function(FName,[erl_syntax:clause([],none,[RHS])]).
 
