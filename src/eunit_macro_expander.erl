@@ -68,9 +68,10 @@ transformer(Tree) ->
 	    end;
 	function ->
 	    FName = erl_syntax:function_name(Tree),
+            Arity = erl_syntax:function_arity(Tree),
 	    case erl_syntax:type(FName) of
 	 	atom ->
-	 	    case is_testFun(erl_syntax:atom_value(FName)) of
+	 	    case is_testFun(erl_syntax:atom_value(FName), Arity) of
 	 		test ->
 	 		    wrap_test_function(Tree,FName,?tracing,test_wrap);
 	 		test_object ->
@@ -111,12 +112,12 @@ split(Fs) ->
 %% a test object: ..._test_,
 %% or not?
 
-is_testFun(Atom) ->    
+is_testFun(Atom, Arity) ->    
     String = lists:reverse(atom_to_list(Atom)),
-    case String of
-	"_tset_"++ _ ->
+    case {String, Arity} of
+	{"_tset_"++ _, 0} ->
 	    test_object;
-	"tset_"++ _ ->
+	{"tset_"++ _, 0} ->
 	    test;
 	_ ->
 	   no_test
