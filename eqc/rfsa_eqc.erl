@@ -171,7 +171,7 @@ prop_qsmtool() ->
         ?WHENFAIL(io:format("POS: ~p\nNEG: ~p\n",[Pos,Neg]),true)
       end)).
 
-prop_compare() -> fails(
+prop_compare() -> 
   ?FORALL(Automata,noshrink(?SIZED(Size,resize(Size*5,automata()))),
     ?FORALL(S,?SIZED(Size,resize(Size*5,automata_sample(Automata))),
       begin
@@ -181,7 +181,7 @@ prop_compare() -> fails(
         BlueRes = automata:automataToTuple(bluefringe:qsm({Pos,Neg})),
         ?WHENFAIL(io:format("QSM: ~p\nBluefringe: ~p\nInput: ~p\n",[QsmRes,BlueRes,{Pos,Neg}]),
                   cmp_automata(QsmRes,BlueRes))
-      end))).
+      end)).
 
 prop_statistic() ->
   ?FORALL(Automata,noshrink(?SIZED(Size,resize(Size*5,automata()))),
