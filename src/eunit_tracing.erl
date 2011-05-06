@@ -21,6 +21,7 @@
 
 t(Mod)
   when is_atom(Mod) ->
+    code:purge(Mod),
     code:load_file(Mod),
     code:load_file(addTestSuffix(Mod)),
     erlang:trace(all, true, [call]),

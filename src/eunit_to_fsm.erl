@@ -36,8 +36,8 @@ dynamic(FileName,Options,Hide) ->
     end,
     ok = file:write_file("/tmp/"++File,Strings),
     {ok,Module,Binary} = compile:file("/tmp/"++File,[binary|Options]),
-    code:delete(BaseName), % Added to purge code for module.erl
     code:purge(BaseName),  % as othewise repeated evaluations give error.
+    code:delete(BaseName), % Added to purge code for module.erl
     {module,_} = code:load_binary(Module,File,Binary),
     trace_runner:start(Module,Hide).
 
