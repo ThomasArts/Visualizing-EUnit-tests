@@ -45,7 +45,7 @@ trailer(Module,Calls) ->
         {Mod,Fun,Args} <- Calls ])] ++
   % initial_state_data
   [ erl_syntax:function(
-      erl_syntax:atom(inital_state_data),
+      erl_syntax:atom(initial_state_data),
       [ erl_syntax:clause([],[],
                           [erl_syntax:list([]) ])])]++
   % next_state_data
@@ -82,7 +82,8 @@ trailer(Module,Calls) ->
                                                         erl_syntax:variable("_S"),
                                                         erl_syntax:variable("Res")]),
                                       erl_syntax:application(erl_syntax:atom(run_commands),
-                                                            [erl_syntax:macro(erl_syntax:atom('MODULE'))])),
+                                                            [erl_syntax:macro(erl_syntax:atom('MODULE')),
+                                                             erl_syntax:variable("Cmds")])),
                 erl_syntax:infix_expr(erl_syntax:variable("Res"),
                                       erl_syntax:operator("=="),
                                       erl_syntax:atom(ok))
