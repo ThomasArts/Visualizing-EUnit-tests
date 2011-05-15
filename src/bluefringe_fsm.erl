@@ -61,14 +61,23 @@ trailer(Module,Calls) ->
   % postconditions
   [ erl_syntax:function(
       erl_syntax:atom(postcondition),
-      [ erl_syntax:clause([erl_syntax:variable("_From"),erl_syntax:variable("_To"),erl_syntax:variable("_S"),
+      [ erl_syntax:clause([erl_syntax:variable("_From"),erl_syntax:atom(state_error),erl_syntax:variable("_S"),
+                           erl_syntax:variable("_Call"),erl_syntax:variable("R")],[],
+                          [erl_syntax:case_expr(
+                             erl_syntax:variable("R"),[
+                                 erl_syntax:clause([erl_syntax:tuple(
+                                                      [erl_syntax:atom('EXIT'),
+                                                       erl_syntax:variable("_")])],[],[erl_syntax:atom(true)]),
+                                 erl_syntax:clause([erl_syntax:variable("_")],[],[erl_syntax:atom(false)])])
+                            ]) |
+       [ erl_syntax:clause([erl_syntax:variable("_From"),erl_syntax:variable("_To"),erl_syntax:variable("_S"),
                            erl_syntax:tuple([erl_syntax:atom(call),
                                             erl_syntax:variable("_"),
                                             erl_syntax:abstract(Fun),
                                             erl_syntax:list([erl_syntax:variable("_") || _<-lists:seq(1,Args)])]),
                            erl_syntax:variable("_R")],[],
                           [erl_syntax:atom(true) ]) ||
-        {Mod,Fun,Args} <- Calls ])]++
+        {Mod,Fun,Args} <- Calls ]])]++
   % property
   [erl_syntax:function(
       erl_syntax:atom(lists:concat(["prop_",Module])),
