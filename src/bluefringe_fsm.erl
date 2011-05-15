@@ -38,7 +38,7 @@ trailer(Module,Calls) ->
       erl_syntax:atom(precondition),
       [ erl_syntax:clause([erl_syntax:variable("_From"),erl_syntax:variable("_To"),erl_syntax:variable("_S"),
                            erl_syntax:tuple([erl_syntax:atom(call),
-                                            erl_syntax:abstract(Mod),
+                                            erl_syntax:variable("_"),
                                             erl_syntax:abstract(Fun),
                                             erl_syntax:list([erl_syntax:variable("_") || _<-lists:seq(1,Args)])])],[],
                           [erl_syntax:atom(true) ]) ||
@@ -54,7 +54,7 @@ trailer(Module,Calls) ->
       [ erl_syntax:clause([erl_syntax:variable("_From"),erl_syntax:variable("_To"),erl_syntax:variable("S"),
                            erl_syntax:variable("_V"),
                            erl_syntax:tuple([erl_syntax:atom(call),
-                                            erl_syntax:abstract(Mod),
+                                            erl_syntax:variable("_"),
                                             erl_syntax:abstract(Fun),
                                             erl_syntax:list([erl_syntax:variable("_") || _<-lists:seq(1,Args)])])],[],
                           [erl_syntax:variable("S") ])  || {Mod,Fun,Args} <- Calls ])]++
@@ -63,7 +63,7 @@ trailer(Module,Calls) ->
       erl_syntax:atom(postcondition),
       [ erl_syntax:clause([erl_syntax:variable("_From"),erl_syntax:variable("_To"),erl_syntax:variable("_S"),
                            erl_syntax:tuple([erl_syntax:atom(call),
-                                            erl_syntax:abstract(Mod),
+                                            erl_syntax:variable("_"),
                                             erl_syntax:abstract(Fun),
                                             erl_syntax:list([erl_syntax:variable("_") || _<-lists:seq(1,Args)])]),
                            erl_syntax:variable("_R")],[],
@@ -87,7 +87,20 @@ trailer(Module,Calls) ->
                 erl_syntax:infix_expr(erl_syntax:variable("Res"),
                                       erl_syntax:operator("=="),
                                       erl_syntax:atom(ok))
-                                   ])]) ])])].
+                                   ])]) ])])] ++
+  % local functions
+  [ begin
+      Vars = [erl_syntax:variable(lists:concat(["X",I])) || I<-lists:seq(1,Arity)],
+      erl_syntax:function(erl_syntax:atom(Fun),
+                          [ erl_syntax:clause(Vars,[],
+                                              [erl_syntax:catch_expr(
+                                                 erl_syntax:application(
+                                                 erl_syntax:abstract(Mod),
+                                                 erl_syntax:abstract(Fun),
+                                                 Vars))]
+                                             )])
+    end || {Mod,Fun,Arity} <- Calls ].
+
 
 arities(Calls) ->
   lists:usort([ {Mod,Fun,length(Args)} || {Mod,Fun,Args}<-Calls]).
@@ -164,9 +177,9 @@ rename_states(Automata) ->
   
 
 
-eqccall(Mod,Fun,SyntaxTree) ->
+eqccall(_Mod,Fun,SyntaxTree) ->
   erl_syntax:tuple([erl_syntax:atom(call),
-                    erl_syntax:abstract(Mod),erl_syntax:abstract(Fun),SyntaxTree]).
+                    erl_syntax:macro(erl_syntax:atom('MODULE')),erl_syntax:abstract(Fun),SyntaxTree]).
 
 mkfunc(From,Trans) ->
   erl_syntax:function(
