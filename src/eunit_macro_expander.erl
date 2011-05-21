@@ -7,8 +7,23 @@
 
 %% File is a String, "Module.erl".
 
-file(File) ->
+dynamic_file(File) -> file(File, dynamic).
+static_file(File) -> file(File, static).
+
+file(File, Mode) ->
     {ok, Trees} = epp_dodger:parse_file(File),
+    Tree = erl_syntax:form_list(Trees),
+    NewTree = transform_tree(Mode, Tree),
+    ListElements = erl_syntax:form_list_elements(NewTree),
+    {Head,Body} = split(Mode, ListElements),
+    {Macros1, Macros2} = create_macros(Mode),
+    MacroTree = erl_syntax:form_list(Head++Macros1++Macros2++Body),
+    {filename:basename(File),erl_prettypr:format(MacroTree)}.
+
+transform_tree(dynamic, Tree) -> erl_syntax_lib:map(fun transformer/1,Tree);
+transform_tree(static, Tree) -> Tree.
+
+create_macros(dynamic) ->
     Macros1 = [makeMacroTree(MName,test_negative) || MName <- [assertError,
 						             assertExit,
 						             assertException,
@@ -17,11 +32,18 @@ file(File) ->
 						             '_assertExit',
 						             '_assertException',
 						             '_assertThrow']],
-    Tree = erl_syntax:form_list(Trees),
-    NewTree = erl_syntax_lib:map(fun transformer/1,Tree),
-    {Head,Body} = split(erl_syntax:form_list_elements(NewTree)),
-    MacroTree = erl_syntax:form_list(Head++Macros1++Macros2++Body),
-    {filename:basename(File),erl_prettypr:format(MacroTree)}.
+    {Macros1, Macros2};
+
+create_macros(static) ->
+    Macros1 = [makeMacroTree_static(MName) || MName <- ['_assertMatch', assertMatch,
+							'_assertError', assertError,
+							'_assertExit', assertExit,
+							'_assertException', assertException,
+							'_assertThrow', assertThrow]],
+    Macros2 = [erl_syntax:attribute(erl_syntax:variable(define),
+				    [erl_syntax:variable("EUNIT_HRL"), erl_syntax:atom('true')])],
+    {Macros1, Macros2}.
+    
 
 %% Transforms a tree, doing two things
 %%  - replaces macros of the form assertXXX
@@ -83,6 +105,7 @@ transformer(Tree) ->
 	_ -> Tree
     end.
 
+
 %% Builds the macro definition
 %%  -define(NewName(X,Y),?OldName(X,Y)).
 
@@ -100,13 +123,56 @@ makeMacroTree(OldName,Wrapper) ->
     RHS = erl_syntax:application(erl_syntax:module_qualifier(ModName,FunName),[MacApp]),
     erl_syntax:attribute(erl_syntax:atom(define),[LHS,RHS]).
 
+makeMacroTree_static(assertException) ->
+    makeMacroTree_static(assertException, 3, fsm_eunit_parser_negative);
+makeMacroTree_static('_assertException') ->
+    makeMacroTree_static('_assertException', 3, fsm_eunit_parser_negative);
+makeMacroTree_static(assertMatch) ->
+    makeMacroTree_static(assertMatch, 2, fsm_eunit_parser_positive);
+makeMacroTree_static('_assertMatch') ->
+    makeMacroTree_static('_assertMatch', 2, fsm_eunit_parser_positive);
+makeMacroTree_static(Other) -> makeMacroTree_static(Other, 2, fsm_eunit_parser_negative).
+
+makeMacroTree_static(MacroName, N, Sig) ->
+    [Trace|ExtraParams] = genParameters(N),
+    Parameters = ExtraParams++[Trace],
+    LHS = erl_syntax:application(erl_syntax:atom(MacroName), Parameters),
+    RHS = case Sig of
+	      fsm_eunit_parser_positive -> Trace;
+	      _ -> erl_syntax:tuple([erl_syntax:atom(Sig), Trace])
+	  end,
+    erl_syntax:attribute(erl_syntax:atom(define), [LHS, RHS]).
+
+genParameters(N) -> [erl_syntax:variable("Trace")|genParameters(N, 1)].
+genParameters(1, _) -> [];
+genParameters(N, L) when N > 1 -> [erl_syntax:variable("P"++integer_to_list(L))|
+				     genParameters(N - 1, L + 1)].
+
 %% Splits the form list after the attributes
 %% (and so before the functions).
-
-split(Fs) ->
+split(dynamic, Fs) ->
     lists:splitwith(fun (F) ->
 			     erl_syntax:type(F) == attribute end,
-		    Fs).
+		    Fs);
+%% Splits the form list after the attributes
+%% or before the first include or include_lib
+%% directive if it exists
+split(static, Fs) ->
+    lists:splitwith(fun check_if_not_include/1, Fs).
+check_if_not_include(F) ->
+    case (erl_syntax:type(F)) of
+	attribute -> Name = erl_syntax:attribute_name(F),
+		     case erl_syntax:type(Name) of
+			 atom -> case erl_syntax:atom_value(Name) of
+				     include -> false;
+				     include_lib -> false;
+				     _ -> true
+				 end;
+			 _ -> true
+		     end;
+	_ -> false
+    end.
+
 
 %% Is an atom a test: ..._test,
 %% a test object: ..._test_,

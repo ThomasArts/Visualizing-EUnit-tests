@@ -10,7 +10,7 @@
 -module(eunit_to_fsm).
 
 %% API
--export([dynamic/3, static/2, file/1, file/2, visualize/1]).
+-export([dynamic/3, static/2, file/1, file/2, alternative_file/2, visualize/1]).
 
 -define(negative, '-negative-').
 
@@ -18,35 +18,39 @@
 % @doc Extract traces from EUnit file FileName_tests if it exists, otherwise assume the 
 % tests to be provided in FileName. We trace all calls to functions exported in FileName.
 % Compiler options passed as second argument; functions not be traced as third argument.
-
 dynamic(FileName,Options,Hide) ->
-  BaseName = list_to_atom(filename:basename(FileName,".erl")),
-  TestFile = filename:rootname(FileName,".erl")++"_tests.erl",
-  {File,Strings} = 
-    case filelib:is_file(TestFile) of
-      true ->
-        eunit_macro_expander:file(TestFile);
-      false ->
-        case filelib:is_file(FileName) of
-        true ->
-            eunit_macro_expander:file(FileName);
-          false ->
-            exit({enoent,FileName})
-        end
-    end,
-    ok = file:write_file("/tmp/"++File,Strings),
+    BaseName = list_to_atom(filename:basename(FileName,".erl")),
+    File = fix_source(FileName, fun eunit_macro_expander:dynamic_file/1),
     {ok,Module,Binary} = compile:file("/tmp/"++File,[binary|Options]),
     code:purge(BaseName),  % as othewise repeated evaluations give error.
     code:delete(BaseName), % Added to purge code for module.erl
     {module,_} = code:load_binary(Module,File,Binary),
     trace_runner:start(Module,Hide).
 
-  
+fix_source(FileName, Expander) ->
+    TestFile = filename:rootname(FileName,".erl")++"_tests.erl",
+    {File,Strings} = 
+	case filelib:is_file(TestFile) of
+	    true ->
+		Expander(TestFile);
+	    false ->
+		case filelib:is_file(FileName) of
+		    true ->
+			Expander(FileName);
+		    false ->
+			exit({enoent,FileName})
+		end
+	end,
+    ok = file:write_file("/tmp/"++File,Strings),
+    File.
+
 % @spec (filename(),[compiler_option()]) -> {[trace()],[trace()]}
 % @doc Staticly interprets EUnit file FileName_tests if it exists, otherwise assume the 
 % tests to be provided in FileName. The tests are not run to obtain the traces.
+% Complier_option are ignored.
 static(FileName,_Options) ->
-  file(FileName).
+    File = fix_source(FileName, fun eunit_macro_expander:static_file/1),
+    static_parser:parse_file("/tmp/"++File).
 
 % @spec (filename()) -> {[trace()],[trace()]}
 % @equiv erun(FileName,fun({_,F,_}) -> F end)
@@ -62,6 +66,11 @@ file(Filename) ->
 % This abstraction is applied to each function occurring in the extracted
 % traces.
 file(Filename, Abstract) ->
+  {Pos, Neg} = static(Filename, []),
+  {[[Abstract(E) || E <- Trace] || Trace <- Pos],
+   [[Abstract(E) || E <- Trace] || Trace <- Neg]}.
+
+alternative_file(Filename, Abstract) ->
   {ok,Forms} = epp:parse_file(Filename,["."],[{'EUNIT_HRL',true}]),
   EunitForms = eunit_autoexport:parse_transform(Forms,[]),
   _X = [ io:format("~s\n",[erl_pp:form(T)]) || T<-EunitForms ],

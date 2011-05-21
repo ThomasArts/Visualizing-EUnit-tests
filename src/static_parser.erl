@@ -134,6 +134,9 @@ replace_generators([{tuple, L, [{atom, L2, setup}, SetUp, _CleanUp, Tests]}],
 		   FindFunc) ->
     replace_generators([{tuple, L, [{atom, L2, setup},
 				    SetUp, Tests]}], FindFunc);
+replace_generators([{tuple, _, [{atom, _, inorder}, Tests]}], FindFunc) ->
+    lists:map(lists:map(fun (X) -> resolve_fun(X, FindFunc) end,
+			static_list_evaluator(Tests)));
 replace_generators([{tuple, _, [{atom, _, foreach}, SetUp, Tests]}],
 		   FindFunc) ->
     lists:map(combine(resolve_fun(SetUp,FindFunc)),
