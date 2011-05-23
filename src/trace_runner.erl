@@ -34,6 +34,11 @@ start(Module, Abstraction) ->
     Traces = flatten_struct(Structs),
     io:format("Printing traces~n",[]),
     io:format("~p~n",[Traces]),
+    AssertedTraces = [ assertions(T) || T<-Traces],
+    io:format("Printing asserted traces~n",[]),
+    io:format("~p~n",[AssertedTraces]),
+    %% Here we should now get the assertions of also positive tests into the trace
+    %% After that, we can make 4 tuples instead of 3 tuples of each event.
     lists:foldl(fun (Trace, {P, N}) ->
      			case posneg(Trace) of
 			     {T, []} -> { [T| P], N};
@@ -201,3 +206,12 @@ posneg(Trace) ->
                    end,Trace).
     
 
+assertions(Trace) ->
+  lists:foldr(fun({eunit_tracing,test_negative,[Assert]},NT) ->
+                  [{eunit_tracing,assertion,[Assert]},{eunit_tracing,test_negative,[]}|NT];
+                 ({eunit_tracing,test_negative,[Assert,R]},NT) ->
+                  [{eunit_tracing,assertion,[Assert]},{eunit_tracing,test_negative,[R]}|NT];
+                 (T,NT) ->
+                  [T|NT]
+              end,[],Trace).
+    

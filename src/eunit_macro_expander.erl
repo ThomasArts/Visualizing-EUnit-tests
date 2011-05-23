@@ -120,7 +120,9 @@ makeMacroTree(OldName,Wrapper) ->
     ModName = erl_syntax:atom(?tracing),
     FunName = erl_syntax:atom(Wrapper),
     MacApp = erl_syntax:macro(erl_syntax:atom(OldName),[X,Y]),
-    RHS = erl_syntax:application(erl_syntax:module_qualifier(ModName,FunName),[MacApp]),
+    Assert = erl_syntax:macro(erl_syntax:macro(X)),
+    RHS = erl_syntax:application(erl_syntax:module_qualifier(ModName,FunName),
+                                 [Assert,MacApp]),
     erl_syntax:attribute(erl_syntax:atom(define),[LHS,RHS]).
 
 makeMacroTree_static(assertException) ->

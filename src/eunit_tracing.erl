@@ -2,9 +2,9 @@
 
 -export([t/0,t/1]).
 
--export([test_start/0, test_end/0, test_negative/0, test_negative/1]).
+-export([test_start/0, test_end/0, test_negative/1, test_negative/2]).
 
--export([map_tuple/2, test_wrap/1, test__wrap/1, negative_wrap/1]).
+-export([map_tuple/2, test_wrap/1, test__wrap/1, negative_wrap/2]).
 
 -include("../include/tracing.hrl").
 
@@ -26,8 +26,9 @@ t(Mod)
     code:load_file(addTestSuffix(Mod)),
     erlang:trace(all, true, [call]),
     erlang:trace_pattern({?tracing, open, '_'}, true, [local]),
-    erlang:trace_pattern({?tracing, close, '_'}, true, [local]),    
-    erlang:trace_pattern({?tracing, test_negative, '_'}, true, [local]),    
+    erlang:trace_pattern({?tracing, close, '_'}, true, [local]),
+%    erlang:trace_pattern({?tracing, assertion, '_'}, true, [local]),
+    erlang:trace_pattern({?tracing, test_negative, '_'}, true, [local]),
     erlang:trace_pattern({Mod, '_', '_'}, true, [global]).
 
 %% Included for (internal) testing purposes.
@@ -53,11 +54,12 @@ test_start() ->
 test_end() ->
     close(test).
 
-test_negative() ->
+test_negative(_Assert) ->
     ok.
 
-test_negative(Test) ->
+test_negative(_ASSERT,Test) ->
     Test.
+
 
 open(_) ->
      ok.
@@ -153,14 +155,15 @@ teardown_wrap(F) ->
 %% Mark a test as negative.
 %% Used in the redefinition of _assertError etc.
 
-negative_wrap(F)
+negative_wrap(Assert,F)
   when is_function(F) ->
     fun () ->
 	    F(),
-	    test_negative()
+	    test_negative(Assert)
     end;  
-negative_wrap(F)
+negative_wrap(Assert,F)
   when is_tuple(F) -> 
-    map_tuple(fun negative_wrap/1,F);
-negative_wrap(F) ->
+    map_tuple(fun(X) -> negative_wrap(Assert,X) end,F);
+negative_wrap(_Assert,F) ->
     F.
+

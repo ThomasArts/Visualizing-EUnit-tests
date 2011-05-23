@@ -22,7 +22,7 @@ dynamic(FileName,Options,Hide) ->
     BaseName = list_to_atom(filename:basename(FileName,".erl")),
     File = fix_source(FileName, fun eunit_macro_expander:dynamic_file/1),
     {ok,Module,Binary} = compile:file("/tmp/"++File,[binary|Options]),
-    code:purge(BaseName),  % as othewise repeated evaluations give error.
+    code:purge(BaseName),  % as otherwise repeated evaluations give error.
     code:delete(BaseName), % Added to purge code for module.erl
     {module,_} = code:load_binary(Module,File,Binary),
     trace_runner:start(Module,Hide).

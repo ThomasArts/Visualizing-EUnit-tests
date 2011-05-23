@@ -6,7 +6,7 @@
 -module(qsm_wrapper).
 -compile(export_all).
 
--define(STATECHUM,"/home/palas/erasmus/statechum.jar").
+-define(STATECHUM,"/Users/thomas/Research/Simon/PaperTestToProperty/QSMtool/qsmtool.jar").
 
  
 run(StateChum,Positive,Negative) ->
