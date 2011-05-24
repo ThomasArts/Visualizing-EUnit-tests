@@ -106,8 +106,15 @@ transformer(Tree) ->
     end.
 
 
-%% Builds the macro definition
-%%  -define(NewName(X,Y),?OldName(X,Y)).
+%% [pre May 2011] Builds the macro definition
+%%  -define(NewName(X,Y),?tracing:Wrapper(?OldName(X,Y))).
+
+%% [from May 2011] Builds the macro definition
+%%  -define(NewName(X,Y),?tracing:Wrapper(??X,?OldName(X,Y))).
+
+%% where Wrapper is test_negative for assertXXX macros and
+%% negative_wrap for _assertXXX macros.
+
 
 makeMacroTree(OldName) ->
     makeMacroTree(OldName,test_negative).

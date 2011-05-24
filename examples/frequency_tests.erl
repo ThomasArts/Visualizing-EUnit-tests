@@ -53,16 +53,16 @@ startTwice_test_() ->
       ?_assertError(badarg,start([]))  
        }].
 
-setup_test_() ->
-    {setup,
-     fun ()  -> start([1]),stop() end,       
-     fun (_) -> start([4]),stop() end,         
-     {setup,
-      fun ()  -> start([2]),stop() end,       
-      fun (_) -> start([3]),stop() end,         
-      fun () -> (fun () -> ok end) end  
-     }  
-    }.
+% setup_test_() ->
+%     {setup,
+%      fun ()  -> start([1]),stop() end,       
+%      fun (_) -> start([4]),stop() end,         
+%      {setup,
+%       fun ()  -> start([2]),stop() end,       
+%       fun (_) -> start([3]),stop() end,         
+%       fun () -> (fun () -> ok end) end  
+%      }  
+%     }.
 
 % stopTwice_test_() ->
 %   start([]),stop(),?_assertError(badarg,stop()).   % a second stop causes failure
