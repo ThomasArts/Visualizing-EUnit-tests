@@ -21,7 +21,6 @@
 
 generateApta({Sp, Sm}) ->
     Agd = #agd{},
-    %% ESp = positiveFromNegative(Sm)++Sp,
     ExpAgd = recursivelyExpandNodes(Agd, [{0, Sm, Sp}]),
     #fa{st = generateList(ExpAgd#agd.lastSt),
      alph = ExpAgd#agd.alph, iSt = 0, tr = ExpAgd#agd.tr,
@@ -32,11 +31,6 @@ generateApta({Sp, Sm}) ->
 %% Internal functions
 %%====================================================================
 
-%% positiveFromNegative(List) -> lists:map(fun removeLast/1, List).
-
-%% removeLast([]) -> [];
-%% removeLast([_]) -> [];
-%% removeLast([Head|Tail]) when Tail =/= [] -> [Head|removeLast(Tail)].
 
 generateList(N) -> generateList(N, []).
 generateList(0, List) -> [0 | List];
@@ -122,6 +116,7 @@ expandNodes(Agd, ExpandedNodes, [NodeToExpand|OtherNodes]) ->
 
 recursivelyExpandNodes(Agd, Nodes) ->
     recursivelyExpandNodes({transformToSets(Agd), Nodes}).
+
 recursivelyExpandNodes({Agd, []}) -> transformFromSets(Agd);
 recursivelyExpandNodes({Agd, List}) -> New = expandNodes(Agd, List),
 				       recursivelyExpandNodes(New).
