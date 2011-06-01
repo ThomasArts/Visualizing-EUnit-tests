@@ -40,20 +40,28 @@ generateApta({Sp, Sm},Map) ->
 breathfirst(Apta, _State, [], _Map) ->
   Apta;
 breathfirst(Apta, State, Traces, Map) ->
-  {Accept, Ts1} = lists:partition(fun(Trace) -> Trace == [pos] end, Traces),
-  {Reject, Ts2} = lists:partition(fun(Trace) -> Trace == [neg] end, Ts1),
-  SameHeads = splitonhead(lists:usort([Map(E) || [E|_]<-Ts2]),Traces,Map),
+  {Accept, Ts1} = 
+    lists:partition(fun(Trace) -> Trace == [pos] end, 
+                    Traces),
+  {Reject, Ts2} = 
+    lists:partition(fun(Trace) -> Trace == [neg] end, 
+                    Ts1),
+  SameHeads = 
+    splitonhead(lists:usort([Map(E) || [E|_]<-Ts2]),
+                Ts2,Map),
   {NextState,Transitions} =
     lists:foldl(fun({Hd,Tls},{NS,Trs}) ->
                     {NS+1,[{Hd,NS,Tls}|Trs]}
                 end,{Apta#agd.lastSt,[]},SameHeads),
   NewApta =
-    Apta#agd{aSt = ifadd(Apta#agd.aSt,Accept=/=[],State),
-             rSt = ifadd(Apta#agd.rSt,Reject=/=[],State),
+    Apta#agd{aSt = ifadd(Apta#agd.aSt,Accept,State),
+             rSt = ifadd(Apta#agd.rSt,Reject,State),
              lastSt = NextState
             },
   lists:foldr(fun({Hd,NS,Tls},A) ->
-                  breathfirst(A#agd{tr = [{State,Hd,NS}|A#agd.tr]},NS, Tls, Map)
+                  NewA = [{State,Hd,NS}|A#agd.tr],
+                  breathfirst(A#agd{tr = NewA},
+                              NS, Tls, Map)
               end,NewApta,Transitions).
 
 splitonhead([],_,_Map) ->
@@ -61,9 +69,9 @@ splitonhead([],_,_Map) ->
 splitonhead([Hd|Hds],Traces,Map) ->
   [{Hd,[Tls || [E|Tls]<-Traces, Map(E)==Hd]} | splitonhead(Hds,Traces,Map)].            
   
-ifadd(List,true,Elem) ->
+ifadd(List,Set,Elem) when Set=/=[]->
   [Elem|List];
-ifadd(List,false,_Elem) ->
+ifadd(List,_,_Elem) ->
   List.
 
 
