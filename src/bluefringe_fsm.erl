@@ -75,8 +75,14 @@ trailer(Module,Calls) ->
                                             erl_syntax:variable("_"),
                                             erl_syntax:abstract(Fun),
                                             erl_syntax:list([erl_syntax:variable("_") || _<-lists:seq(1,Args)])]),
-                           erl_syntax:variable("_R")],[],
-                          [erl_syntax:atom(true) ]) ||
+                           erl_syntax:variable("R")],[],
+                          [erl_syntax:case_expr(
+                             erl_syntax:variable("R"),[
+                                 erl_syntax:clause([erl_syntax:tuple(
+                                                      [erl_syntax:atom('EXIT'),
+                                                       erl_syntax:variable("_")])],[],[erl_syntax:atom(false)]),
+                                 erl_syntax:clause([erl_syntax:variable("_")],[],[erl_syntax:atom(true)])])
+                            ]) ||
         {Mod,Fun,Args} <- Calls ]])]++
   % property
   [erl_syntax:function(
