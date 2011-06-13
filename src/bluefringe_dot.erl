@@ -9,9 +9,9 @@
 -module(bluefringe_dot).
 
 %% API
--export([visualize/1]).
+-export([visualize/2]).
 
-visualize({fa,States,_Tokens,InitState,Transitions,FailingStates}) ->
+visualize({fa,States,_Tokens,InitState,Transitions,FailingStates},Abstract) ->
     Name = "eunit_fsm",
     Type = "jpeg",
     Dot = lists:flatten(["digraph G {\n",
@@ -20,7 +20,7 @@ visualize({fa,States,_Tokens,InitState,Transitions,FailingStates}) ->
 			 lists:map(fun translate_normalstate/1,
 				   (States -- [InitState]) -- FailingStates),
 			 lists:map(fun translate_transition/1,
-				   mix_transitions(Transitions)),
+				   mix_transitions(Transitions,Abstract)),
 			 "}\n"]),
     file:write_file(Name++".dot", list_to_binary(Dot)),
     oscmd("GRAPHVIZ","dot","-T"++Type++" "++Name++".dot -o"++Name++"."++Type),
@@ -43,11 +43,12 @@ removeLast([_|[]]) -> [];
 removeLast([H|T]) -> [H|removeLast(T)].
 
 
-mix_transitions(Transitions) ->
+mix_transitions(Transitions,Abstract) ->
     lists:map(fun ({A,B}) ->
-		      {A, removeLast(lists:flatten(
-    [io_lib:format("~p~n", [C]) || {D, C, E} <- Transitions, D =:= A, E =:= B]
-				      )),B}
+		      {A, removeLast(lists:flatten(lists:usort(
+                                       [io_lib:format("~p~n", [Abstract(C)]) || {D, C, E} <- Transitions, D =:= A, E =:= B]
+				      ))),
+                       B}
 	      end,
 	      lists:usort([{A, B} || {A,_,B} <- Transitions])).
 
