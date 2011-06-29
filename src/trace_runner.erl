@@ -23,20 +23,10 @@ start(Module, Abstraction) ->
     spawn(?MODULE, tester, [Module, self()]),
     Msgs = loop([]),
     Calls = [Call || {_, _, _, Call} <- Msgs],
-    io:format("Printing calls~n",[]),
-    io:format("~p~n",[Calls]),
     CallsF = process(Calls,Abstraction),
-    io:format("Printing filtered calls~n",[]),
-    io:format("~p~n",[CallsF]),
     Structs = parse(CallsF),
-    io:format("Printing parsed structure~n",[]),
-    io:format("~p~n",[Structs]),
     Traces = flatten_struct(Structs),
-    io:format("Printing traces~n",[]),
-    io:format("~p~n",[Traces]),
     AssertedTraces = [ assertions(T) || T<-Traces],
-    io:format("Printing asserted traces~n",[]),
-    io:format("~p~n",[AssertedTraces]),
     %% Here we should now get the assertions of also positive tests into the trace
     %% After that, we can make 4 tuples instead of 3 tuples of each event.
     lists:foldl(fun (Trace, {P, N}) ->
@@ -76,13 +66,18 @@ loop(Msgs) ->
 % process messages
 % Hide messages by the Hide function and abstraction function.
 % Calls combined with their abstractions.
-
+%% Make sure we do not abstract from the eunit tracing part.
 process(Msgs,Hide) ->
-  lists:reverse(lists:foldl(fun(Call,Acc) ->
-                  case catch abstraction(Hide,Call) of
-                    {'EXIT',_} -> Acc;
-                    _Other -> [ Call | Acc ]
-                  end
+  lists:reverse(lists:foldl(
+                  fun({?tracing,_,_}=Call,Acc) ->
+                      [Call | Acc];
+                  (Call,Acc) ->
+                      case catch abstraction(Hide,Call) of
+                        {'EXIT',_} -> Acc;
+                        _AbsCall ->
+                          %% Abstraction here too early. Get all info to qsm!
+                          [ Call | Acc ]
+                      end
               end,[],Msgs)).
 
 % Combine the effect of the hiding function Hide with the
