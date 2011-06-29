@@ -11,47 +11,28 @@
 -import(frequency,[start/1, stop/0, allocate/0, deallocate/1]).
 
 
-%%
-%% The tests themselves
-%%
-
 %% A single positive test.
 
-startstop_test() -> 
-    ?assertMatch(true,start([])),
-    ?assertMatch(ok,stop()),
-    ?assertMatch(true,start([])),
-    ?assertMatch(ok,stop()).
-    
-%% A group of positive tests.
-
-% startstop_test_() ->
-%     {inparallel,
-%      [ ?_assertMatch(true,start([])),
-%        ?_assertMatch(ok,stop()),
-%        ?_assertMatch(true,start([])),
-%        ?_assertMatch(ok,stop())]}.
-
-startstop_INORDER_test_() ->
+startstop_test_() ->
     {inorder,
      [ ?_assertMatch(true,start([])),
        ?_assertMatch(ok,stop()),
-       ?_assertMatch(true,start([])),
+       ?_assertMatch(true,start([1])),
        ?_assertMatch(ok,stop())]}.
 
 % A single negative test.
 
 stopFirst_test() ->
-    ?assertError(badarg,stop()).
+     ?assertError(badarg,stop()).
 
 % A fixture that also contains a negative test.
 
 startTwice_test_() ->
-    [{setup,
-      fun ()  -> start([]) end,       
-      fun (_) -> stop() end,         
-      ?_assertError(badarg,start([]))  
-       }].
+  [{setup,
+    fun ()  -> start([1]) end,       
+    fun (_) -> stop() end,         
+      ?_assertError(badarg,start([1,2]))  
+   }].
 
 % setup_test_() ->
 %     {setup,
