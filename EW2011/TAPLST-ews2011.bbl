@@ -1,0 +1,76 @@
+\begin{thebibliography}{10}
+
+\bibitem{arts2010test}
+T.~Arts and S.~Thompson.
+\newblock {From test cases to FSMs: augmented test-driven development and
+  property inference}.
+\newblock In {\em Proceedings of the 9th ACM SIGPLAN workshop on Erlang}, pages
+  1--12. ACM, 2010.
+
+\bibitem{beck2003test}
+K.~Beck.
+\newblock {\em {Test-driven development: by example}}.
+\newblock Addison-Wesley Professional, 2003.
+
+\bibitem{eunit}
+Richard Carlsson and Micka\"{e}l R\'{e}mond.
+\newblock {EUnit: a lightweight unit testing framework for Erlang}.
+\newblock In {\em {Proceedings of the 2006 ACM SIGPLAN workshop on Erlang}},
+  ERLANG '06, New York, NY, USA, 2006.
+
+\bibitem{QuickSpec}
+Koen Claessen, Nicholas Smallbone, and John Hughes.
+\newblock {QuickSpec: guessing formal specifications using testing}.
+\newblock In {\em {Proceedings of the 4th international conference on Tests and
+  proofs}}, TAP'10. Springer-Verlag, 2010.
+
+\bibitem{dupont2008qsm}
+P.~Dupont, B.~Lambeau, C.~Damas, and A.~van Lamsweerde.
+\newblock {The QSM algorithm and its application to software behavior model
+  induction}.
+\newblock {\em Applied Artificial Intelligence}, 22(1):77--115, 2008.
+
+\bibitem{eunit_user_guide}
+{EUnit User's Guide}.
+\newblock http://www.erlang.org/doc/apps/eunit/chapter.html.
+
+\bibitem{RefTest2011}
+Huiqing Li, Simon Thompson, and Thomas Arts.
+\newblock {Extracting Properties from Test Cases by Refactoring}.
+\newblock In Steve Counsell, editor, {\em Proceedings of the Refactoring and
+  Testing Workshop (RefTest 2011)}. IEEE digital library, 2011.
+
+\bibitem{inference}
+José Sempere and Pedro García, editors.
+\newblock {\em {Grammatical Inference: Theoretical Results and Applications;
+  10th International Colloquium, ICGI 2010, Valencia, Spain}}, volume 6339 of
+  {\em Lecture Notes in Computer Science}.
+\newblock Springer-Verlag, 2010.
+
+\bibitem{statechum}
+{StateChum}.
+\newblock http://statechum.sourceforge.net/.
+
+\bibitem{walkinshaw2008inferring}
+N.~Walkinshaw and K.~Bogdanov.
+\newblock {Inferring Finite-State Models with Temporal Constraints}.
+\newblock In {\em {Proceedings of the 2008 23rd IEEE/ACM International
+  Conference on Automated Software Engineering}}, ASE '08, Washington, DC, USA,
+  2008. IEEE Computer Society.
+
+\bibitem{walkinshaw2007reverse}
+N.~Walkinshaw, K.~Bogdanov, M.~Holcombe, and S.~Salahuddin.
+\newblock {Reverse engineering state machines by interactive grammar
+  inference}.
+\newblock In {\em Working Conference on Reverse Engineering}, pages 209--218,
+  2007.
+
+\bibitem{STAMINA}
+Neil Walkinshaw, Kirill Bogdanov, Christophe Damas, Bernard Lambeau, and Pierre
+  Dupont.
+\newblock {A Framework for the Competitive Evaluation of Model Inference
+  Techniques}.
+\newblock In {\em {1st International Workshop on Model Inference In Testing}},
+  2010.
+
+\end{thebibliography}
