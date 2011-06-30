@@ -870,6 +870,57 @@ Note that we at the moment do not use the asserted values. This is a matter of p
 Since we now do have an implementation of the QSM algorithm in Erlang, we can now
 add that extension.
 
+\section{Improving EUnit tests with QuickCheck}
+
+We can now use the QuickCheck specification to generate and run tests. This is very much in line with the original idea of the State Chum tool, which would generate new traces and ask user feedback on whether such a trace is positive or negative. In our case, we output test cases and shrink these test cases to minimal cases. When adding these test cases to the EUnit test suite, we get a more complete QuickCheck state machine. Surely, one could also add the necessary information directly in the QuickCheck state machine, but we envision users that are more familiar with EUnit than with QuickCheck.
+
+When running the QuickCheck on the state machine created in the previous chapter, it fails stating either that we cannot do only a \texttt{stop} operation nor only a \texttt{start} operation.
+This seems strange, since we have an EUnit tests stating that we raise an exception when stopping and we should definitely be able to just start. The problem is that we did not implement the cleanup code in the QuickCheck state machine. A test may end in a state with a started server, whereas the QuickCheck model starts from the assumption that the server is not running; hence the obtained results are interpreted as errors.
+
+For the moment, we manually have to add cleanup code to the QuickCheck state machine. We use the fact that we have a local command that catches possible errors when doing the cleanup.
+\begin{verbatim}
+prop_frequency() ->
+  ?FORALL(Cmds, (commands(?MODULE)),
+    begin
+      stop(),
+      {_History, _S, Res} = 
+        run_commands(?MODULE,Cmds), 
+      Res == ok
+    end).      
+\end{verbatim}   
+After this change, all QuickCheck tests pass.
+
+The reason that all tests pass is that we exploited all possible sequences of starting and stopping the server. Normally, one would not have all positive and negative tests in place at once. In those cases, QuickCheck is a great help in providing new, alternative EUnit tests.
+As an example, we add the following test to our \texttt{frequency\_tests} module:
+\begin{verbatim}
+allocate1_test_() ->
+  {setup,
+    fun ()  -> start([1]) end,  
+    fun (_) -> stop() end,
+    ?_assertMatch({ok,_},allocate())
+  }.
+\end{verbatim}
+
+After creating the QuickCheck state machine and adding the cleanup code \verb+stop()+ we can run QuickCheck and get the following counter example:
+\begin{verbatim}
+Shrinking.(1 times)
+[{set,{var,1},{call,frequency_eqc,start,[[1]]}},
+ {set,{var,2},{call,frequency_eqc,allocate,[]}},
+ {set,{var,3},{call,frequency_eqc,allocate,[]}}]
+false
+\end{verbatim}
+This means that allocating twice with one resource fails. We could now add this as an EUnit test to our test suite and repeat the procedure. In this way we get a more and more refind QuickCheck model and soon test much more than what is present in the EUnit tests from the beginning.
+
+We can also run QuickCheck several times with the same state machine to obtain a number EUnit tests that we potentially could add, or to get more insight in what we should test. For example, the other counterexamples for the tests we have so far is:
+\begin{verbatim}
+Shrinking..(2 times)
+[{set,{var,1},{call,frequency_eqc,start,[[]]}},
+ {set,{var,2},{call,frequency_eqc,allocate,[]}}]
+false
+\end{verbatim}
+
+Different from using the graphical representation to have a user evaluate whether certain 'traces' are positive or negative (cf.\ \cite{arts2010test}), we present tests that the developer has to judge as valid or invalid tests. With little effort we can pretty print the test as Erlang code with the actual return values of  the calls as left-hand sides of matches. 
+
 \section{Related Work}
 \label{RelatedWork}
 
@@ -878,6 +929,7 @@ The QSM algorithm is one of many in the field of grammar inference, which has be
 Recent work has seen the transfer of results from this field into model inference, adapting techniques as necessary. For example, competitions have been used to drive research in grammar inference, but these need to be adapted to work in the model inference environment~\cite{STAMINA}. 
 
 Other approaches to property inference include QuickSpec \cite{QuickSpec}, which infers equational properties by comparing the values of expressions under sets of randomly generated values, and clone identification and elimination, which can be used to find general properties from instances within a test suite \cite{RefTest2011}.
+
 
 
 \section{Conclusion}
