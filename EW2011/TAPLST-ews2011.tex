@@ -3,6 +3,8 @@
 \usepackage[utf8x]{inputenc}
 \usepackage{cite}
 \usepackage{graphicx}
+\usepackage{alltt}
+
 %opening
 \conferenceinfo{Tenth Erlang ACM SIGPLAN Erlang Workshop '11}{September 23, 2010, Tokyo, Japan}
 \copyrightyear{2011}
@@ -49,8 +51,8 @@ Tests form a kind of specification of what the implementation and by visualizing
 This paper describes how the automation of that process, thus the creation of a QuickCheck finite state machine from a set of EUnit tests.  
 
 The generation of the FSM is based upon an algorithm to extract regular grammars from samples of a language \cite{dupont2008qsm}.
-This algorithm, (QSM,) takes as input both words in the language and words not in the
-language and infers a regular grammar from them. For visualization of the state machine we previously  (cf.\ \cite{arts2010test}) used StateChum \cite{statechum}, a Java implementation of the QSM algorithm. In order to use StateChum for the generation of QuickCheck specification, we would need to modify it and add possibilities to abstract over Erlang terms. 
+This algorithm, (QSM) takes as input both words in the language and words not in the
+language and infers a regular grammar from them. For visualization of the state machine we previously  (cf.\ \cite{arts2010test}) used StateChum \cite{statechum}, a Java implementation of the QSM (``\emph{query-driven state merging}'') algorithm \cite{dupont2008qsm}. In order to use StateChum for the generation of QuickCheck specification, we would need to modify it and add possibilities to abstract over Erlang terms. 
 For example, if we have the following EUnit test stating that we can start a server with an empty list of resources or with only resource 1:
 \begin{verbatim}
  startstop_test() ->
@@ -59,16 +61,20 @@ For example, if we have the following EUnit test stating that we can start a ser
      ?assertMatch(true,start([1])),
      ?assertMatch(ok,stop()).
 \end{verbatim}
-Then we can extract the positive trace: \texttt{[start, stop, start, stop]}, This is a rough abstraction, removing the arguments of the calls and neglecting the return values, but it gives right abstraction for the visualization, i.e., we can start and stop the state machine. We do not want to infer a state machine that is too specific and visualizes that only after starting the server with zero resources we can start it with one resource. 
+Then we can extract the positive trace: 
+\begin{verbatim}
+[start, stop, start, stop]
+\end{verbatim}
+This is a rough abstraction, removing the arguments of the calls and neglecting the return values, but it gives right abstraction for the visualization, i.e., we can start and stop the state machine, and then start and stop again. In doing this, we do not want to infer a state machine that is too specific and that the first machine stsrt can only be with zero resources (\verb+[]+) and the second only with a single resource (\verb+[1]+). 
 
-If any of that sequences leads to an exception we generate a negative trace instead.
+If any of those sequences leads to an exception we generate a negative trace instead.
 Negative traces are necessary to get a complete test-suite and consequently they are
 also necessary for this method to give the demanded result.
 
 If we collect enough traces, we can feed them as input to the
 program \mbox{StateChum\cite{statechum}} and it will show us a diagram
 of an FSM that will represent the expected behaviour of our system.
-StateChum is an implementation of an algorithm (QSM\cite{dupont2008qsm})
+StateChum is an implementation of an algorithm (QSM)
 which explains how to extract a general regular grammar from samples
 of a regular language.
 
@@ -82,7 +88,7 @@ The paper is organised as follows. In Section~\ref{QSM} we introduce the QSM alg
 \section{Erlang QSM}
 \label{QSM}
 
-The existing QSM implementation, StateChum, was only available
+The existing query-driven state merging (QSM) implementation, StateChum, was only available
 to us as a binary. We could not access the source code but
 we were able to consult the two papers written by its developers
 \cite{walkinshaw2008inferring}\cite{walkinshaw2007reverse}.
@@ -131,26 +137,29 @@ Which is represented by the Erlang term:
 \end{verbatim}
 
 The QSM algorithm roughly consists of two phases\cite{dupont2008qsm}. In the first one,
-called \textit{initialization}, we create a finite state machine with a tree structure (called APTA)
+called \textit{initialization}, we create a finite state machine with a tree structure, the  Augmented Prefix Tree Acceptor (APTA)
 that will accept all positive traces and reject all negative ones. In the
 second phase, \textit{state merging}, we merge nodes of the tree in order to get
 a smaller finite state machine which is still deterministic and accepts and rejects the initial sets of positive and negative traces. 
 
 \subsection{Initialization}
 
-The Augmented Prefix Tree Acceptor (APTA) is the tree that we will use as
+The Augmented Prefix Tree Acceptor is the tree that we will use as
 our initial FSM. It must necessarily have a tree shape, it must
 accept all positive traces and reject all negative traces and
 it must also be deterministic (this is, there cannot be two
 branches with the same symbol departing from the same node).
+For example, from the previous traces we would get the 
+APTA in Figure \ref{fsm1} in which 0 is the initial state and 8 is a failing one.
 
-For example, from the previous traces we would get the following
-APTA in which  0 is the initial state and 8 a failing one.
-
+\begin{figure}
 \begin{center}
 \includegraphics[width=8cm]{pictures/fsm1.pdf}
 %\includegraphics[width=8cm]{pictures/pic1.pdf}
 \end{center}
+\caption{Initial APTA}
+\label{fsm1}
+\end{figure}
 
 
 In order to generate this in Erlang we create an initial
@@ -187,12 +196,9 @@ initial state, alphabet, states, transitions and failing states.
 The transitions are stored using the labelled transition system (LTS),
 as a list of tuples in the form: {origin, event, destination}. In
 our example the transitions would look like:
-
 \begin{verbatim}
-[{0, a, 1}, {0, b, 2}, {1, b, 3}, {2, b, 4}, ... , 
-  {7, b, 9}]
+[{0,a,1}, {0,b,2}, {1,b,3}, {2,b,4}, ..., {7,b,9}]
 \end{verbatim}
-
 We also decided to keep some order in the numbers of the states
 to simplify the implementation of the \textit{state merging} later,
 this way the number of a state in a given level would always
@@ -212,9 +218,9 @@ the alphabet used (to add new symbols to it), the defined
 rejection states, and a separate buffer with the already expanded
 transitions from the current node, (in case our symbol already
 has a transition).
-
 To do this we wrote the function \texttt{breathfirst} that
-updates the apta recursively. 
+updates the APTA recursively; as shown in  Figure \ref{breadthfirst}
+\begin{figure}
 \begin{verbatim}
 breathfirst(Apta, _State, [], _Map) ->
   Apta;
@@ -242,26 +248,37 @@ breathfirst(Apta, State, Traces, Map) ->
                               NS, Tls, Map)
               end,NewApta,Transitions).
 \end{verbatim}
+\caption{The \texttt{breadthfirst} function}
+\label{breadthfirst}
+\end{figure}
 
 \subsection{State merging}
 
 Now we generalize the FSM by merging states. To merge two
 states we just move the transitions from one state to the other.
 For example, if we merge in the APTA above the states 1 and 2
-we get:
+we get the machine illustrated in Figure \ref{fsm2}.
 
+\begin{figure}
 \begin{center}
 \includegraphics[width=8cm]{pictures/fsm2.pdf}
 %\includegraphics[width=8cm]{pictures/pic2.pdf}
 \end{center}
+\caption{State machine merging: stage 1}
+\label{fsm2}
+\end{figure}
 
-And if non-determinism appears we continue merging, 3 with 4, then
-5 with 7 and we would get:
+If non-determinism appears we continue merging, 3 with 4, then
+5 with 7 and we would get the machine illustrated in Figure \ref{fsm3}.
 
+\begin{figure}
 \begin{center}
 \includegraphics[width=8cm]{pictures/fsm3.pdf}
 %\includegraphics[width=8cm]{pictures/pic3.pdf}
 \end{center}
+\caption{State machine merging: stage 2}
+\label{fsm3}
+\end{figure}
 
 After merging, we check that the original traces are still
 valid. If any trace is lost we undo the merge. In our implementation
@@ -276,10 +293,14 @@ be used as candidates to merge with the red zone.
 
 We start setting the initial state as red and its neighbours as blue.
 
+\begin{figure}
 \begin{center}
 \includegraphics[width=8cm]{pictures/fsm4.pdf}
 %\includegraphics[width=8.5cm]{pictures/pic4.pdf}
 \end{center}
+\caption{State machine merging: stage 3}
+\label{fsm4}
+\end{figure}
 
 In each step we compute the score for every possible pair of candidates
 to merge, (pairs consisting on one node from the red zone and one node from the blue zone).
@@ -450,12 +471,16 @@ We needed to fix a few errors in our QSM implementation, but even after that,
 we found out that in some cases the results were still different despite
 being both correct according to the QSM specification.
 For example, the traces \texttt{\{[[y,z,y,z],[z,y,z,y]],[[z,y,y]]\}} 
-result in the following APTA tree:
+result in the APTA tree shown in Figure \ref{fsm5}.
 
+\begin{figure}
 \begin{center}
 \includegraphics[width=8.5cm]{pictures/fsm5.pdf}
 %\includegraphics[width=8.5cm]{pictures/pic5.pdf}
 \end{center}
+\caption{Alternative APTA}
+\label{fsm5}
+\end{figure}
 
 Then we apply the bluefringe strategy and compute the scores for all possible
 combinations:
@@ -472,22 +497,30 @@ which pair shall we merge first?
 
 If we choose the pair (0, 1), (as StateChum apparently does in this case,) we will
 form a loop with the \texttt{y} symbol transitioning to state 0 and continuing with
-the algorithm we will end up with an irreducible automaton like this, where state 
-numbers may differ:
+the algorithm we will end up with an irreducible automaton shown in Figure \ref{fsm6}, where state 
+numbers may differ.
 
+\begin{figure}
 \begin{center}
 \includegraphics[width=8cm]{pictures/fsm6.pdf}
 %\includegraphics[width=8cm]{pictures/pic6.pdf}
 \end{center}
+\caption{Irreducible automaton version 1}
+\label{fsm6}
+\end{figure}
  
 On the other hand, if we chose the pair (0, 2), (as our implementation does in this
 case,) we will form a loop with the \texttt{z} symbol transitioning to state 0 and
-we will get this slightly smaller, also irreducible automaton:
+we will get a slightly smaller, also irreducible automaton, shown in Figure \ref{fsm7}.
 
+\begin{figure}
 \begin{center}
 \includegraphics[width=6cm]{pictures/fsm7.pdf}
 %\includegraphics[width=6cm]{pictures/pic7.pdf}
 \end{center}
+\caption{Irreducible automaton version 2}
+\label{fsm7}
+\end{figure}
 
 Given this choice in implementation, the question arises whether any of the
 choices is better than the other? In order to find out, we used QuickCheck again. 
@@ -724,7 +757,8 @@ We could modify the implementation of EUnit, adding calls to the macro definitio
 \item
 On the other hand, we can provide a mechanism which modifies the SUT and its tests so that when these are run with the standard EUnit we get the required results; this is the option that we have chosen, and which we describe now.
 \end{itemize}
-Based on the tests in the file \texttt{module.erl} of \texttt{module\_tests.erl} we build an instrumented variant of the file. Using the facilities of Erlang to compile, load and purge code we then execute this variant, and then gather and process the results of the tracing into sets of positive and negative test traces.
+EUnit tests for a module \texttt{module.erl} are expected to appear in that file or in the file \texttt{module\_tests.erl}; these tests will be written by the authors of the system. Ba
+Based on the tests in these files, we automatically build an instrumented variant of the file. Using the facilities of Erlang to compile, load and purge code we then execute this variant, and then gather and process the results of the tracing into sets of positive and negative test traces.
 
 Taking the running example for this section, our transformed file \texttt{frequency\_tests.erl} looks like this:
 \begin{verbatim}
