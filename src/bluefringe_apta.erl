@@ -30,9 +30,10 @@ generateApta(PosNeg) ->
   generateApta(PosNeg,fun(E) -> E end).
 
 generateApta({Sp, Sm},Map) ->
-  Alphabet = lists:usort([ Map(Event) || Event<-lists:append(Sp++Sm)]),
+  WrappedMap = fun(E) -> {Map(E), [E]} end,
+  Alphabet = lists:usort([Map(Event) || Event <- lists:append(Sp ++ Sm)]),
   ExpAgd = breathfirst(#agd{lastSt=1}, 0, 
-                       [Trace++[pos] || Trace<-Sp] ++ [Trace++[neg] || Trace<-Sm], Map),
+                       [Trace ++ [pos] || Trace <- Sp] ++ [Trace ++ [neg] || Trace <- Sm], WrappedMap),
   % check disjunction accepting and rejecting states
   case ExpAgd#agd.aSt -- (ExpAgd#agd.aSt -- ExpAgd#agd.rSt) of
     [] ->
