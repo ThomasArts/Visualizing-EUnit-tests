@@ -6,7 +6,7 @@
 %%% Created : 7 Nov 2010
 %%%-------------------------------------------------------------------
 -module(bluefringe_merge).
--include("../include/automata.hrl").
+-include("visualize.hrl").
 
 %% API
 -export([merge/3, number_of_merges/3]).

@@ -6,7 +6,7 @@
 %%% Created : 26 Oct 2010
 %%%-------------------------------------------------------------------
 -module(automata).
--include("../include/automata.hrl").
+-include("visualize.hrl").
 %% API
 -export([automataToTuple/1, tupleToAutomata/1]).
 

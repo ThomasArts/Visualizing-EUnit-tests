@@ -6,7 +6,7 @@
 -module(trace_runner_eqc).
 
 -include_lib("eqc/include/eqc.hrl").
--include("../include/tracing.hrl").
+-include("visualize.hrl").
 
 -import(trace_runner,[is_initial/2, parse/1]).
 
