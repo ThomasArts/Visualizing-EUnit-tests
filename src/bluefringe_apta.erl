@@ -9,7 +9,7 @@
 -module(bluefringe_apta).
 
 %% API
--export([generateApta/1]).
+-export([generateApta/1, generateApta/2]).
 -include("../include/visualize.hrl").
 
 %% Automaton generation data
