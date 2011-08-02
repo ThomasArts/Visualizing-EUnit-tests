@@ -30,3 +30,12 @@ prop_test() ->
 				equals(New, AdaptedOld)
 			end).
 
+prop_test2() ->
+	fails(?FORALL(Sample, trace(),
+			begin
+				Fun = fun (X) -> {test} end,
+				Old = old_bluefringe_apta:generateApta(Sample, Fun),
+				New = bluefringe_apta:generateApta(Sample, Fun),
+				AdaptedNew = New#fa{tr = [{Ori, Tran, Dest} || {Ori, {Tran, _Info}, Dest} <- New#fa.tr]},
+				equals(AdaptedNew, Old)
+			end)).
