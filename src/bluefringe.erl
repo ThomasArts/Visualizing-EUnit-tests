@@ -7,7 +7,7 @@
 %%%-------------------------------------------------------------------
 
 -module(bluefringe).
--include("../include/automata.hrl").
+-include("../include/visualize.hrl").
 
 %% API
 -export([dot/1,dot/2,qsm/1]).

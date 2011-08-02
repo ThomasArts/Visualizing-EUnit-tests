@@ -10,7 +10,7 @@
 -compile(export_all).
 
 
--include("../include/tracing.hrl").
+-include("../include/visualize.hrl").
 
 % Top-level function.
 % Returns the traces as a list of (lists of) lists.

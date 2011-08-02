@@ -2,7 +2,7 @@
 
 -compile(export_all).
 
--include("../include/tracing.hrl").
+-include("../include/visualize.hrl").
 
 
 %% File is a String, "Module.erl".

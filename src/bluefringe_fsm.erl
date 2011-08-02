@@ -6,7 +6,7 @@
 -module(bluefringe_fsm).
 
 -export([eqc_fsm/2]).
--include("../include/automata.hrl").
+-include("../include/visualize.hrl").
 
 
 % @spec (automata(),atom()) -> syntaxTree()

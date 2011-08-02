@@ -10,7 +10,7 @@
 
 %% API
 -export([generateApta/1]).
--include("../include/automata.hrl").
+-include("../include/visualize.hrl").
 
 %% Automaton generation data
 %% lastState, foundAlphabet, foundTransitions, rejectionStates, acceptingStates

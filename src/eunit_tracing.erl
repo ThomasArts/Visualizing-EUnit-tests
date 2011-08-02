@@ -6,7 +6,7 @@
 
 -export([map_tuple/2, test_wrap/1, test__wrap/1, negative_wrap/2]).
 
--include("../include/tracing.hrl").
+-include("../include/visualize.hrl").
 
 %%
 %% Top-level function to initiate tracing.
