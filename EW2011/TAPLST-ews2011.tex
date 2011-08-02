@@ -1,5 +1,11 @@
 \documentclass[]{sigplanconf}
 
+
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+
+\usepackage[T1]{fontenc}
+
 \usepackage[utf8x]{inputenc}
 \usepackage{cite}
 \usepackage{graphicx}
@@ -37,6 +43,17 @@ In particular for implementations that have side-effects, writing a good set of 
 In this paper we report on mechanisms to extract QuickCheck specifications from EUnit test suites. We use the QSM algorithm to infer state machines from sets of positive and negative traces derived from the test suite. These traces can be derived either statically or dynamically and we describe both approaches here. Finally we show how to move from the inferred state machine to a QuickCheck state machine. This QuickCheck state machine can then be used to generate tests, which include the EUnit tests, but also include many new and different combinations that can augment the test suite. In this way, one can achieve substantially better testing with little extra work.
 \end{abstract}
 
+
+
+\category{D. Software}{D.2 SOFTWARE ENGINEERING}{D.2.5 Testing and Debugging: Testing tools}
+
+\terms
+Verification
+
+\keywords{Erlang, EUnit, unit test, 
+QuickCheck, property, inference, test-driven development, finite-state machine, StateChum}
+
+
 \section{Introduction}
 
 Erlang programmers test their code by using, among other tools,
@@ -46,7 +63,7 @@ in order to avoid writing unnecessary code \cite{beck2003test}. We grow
 the test suite by adding tests before developing additional features. One desirable result of this is that one has tested all the developed features; but what is the quality of the 
 tests and are there sufficiently many tests to guarantee the quality of the application?
 
-Tests form a kind of specification of what the implementation should do and by \emph{visualising}\footnote{We use `visualisation' in two senses: first, in a general sense of being able to grasp and `get a picture of' what the specification means and implies, and secondly in the more concrete sense of building a graphical picture of the state machine: code to do this is part of the overall distribution, available at \texttt{https://github.com/ThomasArts/Visualizing-EUnit-tests}.} this specification as a finite state machine (FSM), a developer can discover unspecified or untested parts \cite{arts2010test}. Moreover, if we only add tests for newly added features, errors caused by interacting features may go undiscovered, whereas visualisation may hint that certain interactions are untested. 
+Tests form a kind of specification of what the implementation should do and by \emph{visualising} this specification as a finite state machine (FSM), a developer can discover unspecified or untested parts \cite{arts2010test}. Moreover, if we only add tests for newly added features, errors caused by interacting features may go undiscovered, whereas visualisation\footnote{We use `visualisation' in two senses: first, in a general sense of being able to grasp and `get a picture of' what the specification means and implies, and secondly in the more concrete sense of building a graphical picture of the state machine: code to do this is part of the overall distribution, available at \texttt{https://github.com/ThomasArts/Visualizing-EUnit-tests}.} may hint that certain interactions are untested. 
 
 Instead of manually adding tests, we advocate to use the state machine not only to visually check the developers intuition, but also to generate additional tests automatically. This is elegantly done by translating the state machine into a QuickCheck state machine specification.
 This paper describes the automation of that process of creating a QuickCheck finite state machine from a set of EUnit tests.  
@@ -87,6 +104,7 @@ The paper is organised as follows. In Section~\ref{QSM} we introduce the QSM alg
 \begin{center}
 \includegraphics[width=8cm]{pictures/fsm1.pdf}
 %\includegraphics[width=8cm]{pictures/pic1.pdf}
+%\includegraphics[width=8cm]{pictures/fsm1.ps}
 \end{center}
 \caption{Initial APTA}
 \label{fsm1}
@@ -260,8 +278,9 @@ we get the machine illustrated in Figure \ref{fsm2}.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=8cm]{pictures/fsm2.pdf}
-%\includegraphics[width=8cm]{pictures/pic2.pdf}
+%\includegraphics[width=8cm]{pictures/fsm2.ps}
+%\includegraphics[width=8cm]{pictures/fsm2.pdf}
+\includegraphics[width=8cm]{pictures/pic2.pdf}
 \end{center}
 \caption{State machine merging: stage 1}
 \label{fsm2}
@@ -272,8 +291,9 @@ If non-determinism appears we continue merging, 3 with 4, then
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=8cm]{pictures/fsm3.pdf}
-%\includegraphics[width=8cm]{pictures/pic3.pdf}
+%\includegraphics[width=8cm]{pictures/fsm3.ps}
+%\includegraphics[width=8cm]{pictures/fsm3.pdf}
+\includegraphics[width=8cm]{pictures/pic3.pdf}
 \end{center}
 \caption{State machine merging: stage 2}
 \label{fsm3}
@@ -290,18 +310,19 @@ FSM. The red zone has the nodes that cannot be reduced
 and the blue zone has the immediate neighbours, which will
 be used as candidates to merge with the red zone.
 
-We start setting the initial state as red and its neighbours as blue.
-
 \begin{figure}
 \begin{center}
 \includegraphics[width=8cm]{pictures/fsm4.pdf}
+%\includegraphics[width=8cm]{pictures/fsm4.ps}
 %\includegraphics[width=8.5cm]{pictures/pic4.pdf}
 \end{center}
 \caption{State machine merging: stage 3}
 \label{fsm4}
 \end{figure}
 
-In each step we compute the score for every possible pair of candidates
+
+We start setting the initial state as red and its neighbours as blue.
+At each step we compute the score for every possible pair of candidates
 to merge, (pairs consisting on one node from the red zone and one node from the blue zone).
 The score for a pair of candidates is given by the number of extra
 merges that we would be forced to carry out in order to restore determinism after
@@ -476,6 +497,7 @@ performing extra iterations at the end.
 \begin{figure}
 \begin{center}
 \includegraphics[width=8.5cm]{pictures/fsm5.pdf}
+%\includegraphics[width=8.5cm]{pictures/fsm5.ps}
 %\includegraphics[width=8.5cm]{pictures/pic5.pdf}
 \end{center}
 \caption{Alternative APTA}
@@ -511,6 +533,7 @@ numbers may differ.
 
 \begin{figure}
 \begin{center}
+%\includegraphics[width=8cm]{pictures/fsm6.ps}
 \includegraphics[width=8cm]{pictures/fsm6.pdf}
 %\includegraphics[width=8cm]{pictures/pic6.pdf}
 \end{center}
@@ -525,6 +548,7 @@ we will get a slightly smaller, also irreducible automaton, shown in Figure \ref
 \begin{figure}
 \begin{center}
 \includegraphics[width=6cm]{pictures/fsm7.pdf}
+%\includegraphics[width=6cm]{pictures/fsm7.ps}
 %\includegraphics[width=6cm]{pictures/pic7.pdf}
 \end{center}
 \caption{Irreducible automaton version 2}
@@ -675,19 +699,7 @@ On the other hand, if an implementation of the system under test (SUT) is availa
 
 In this section we describe how to gather sets of positive and negative traces by running EUnit tests. The implementation does not require that EUnit is modified, and so EUnit is simply used as a library; this section explains the details of the implementation.
 
-\subsection{The Erlang function call trace}
-\label{function-traces} 
-
-We use the Erlang tracing mechanism to collect trace data from the execution of EUnit tests. Running tracing on calls to the API functions of the SUT allow us to see which functions are called, as well as the arguments on which they are called. Running all the Eunit tests will give us a single (Erlang) trace, which needs to be analysed in two ways.
-\begin{itemize}
-\item
-We need to be able to split the trace into a series of traces, one for each EUnit test.
-\item
-We also need to be able to distinguish between positive traces and negative traces. 
-\end{itemize}
-In order to do this we ensure that the Erlang trace also contains information about calls to dummy functions that record the beginning and end of each EUnit test by calls to the functions \texttt{open/1} and \texttt{close/1}. We also mark the tests for a negative outcome by a call to \texttt{test\_negative}.
-
-An Erlang trace of this form is fully parenthesised by matching pairs of calls to \texttt{open/1} and \texttt{close/1}, and so it is straightforward to write a recursive-descent parser to parse the Erlang traces into sets of positive and negative test traces. For example, the tests
+\begin{figure}
 \begin{verbatim}
 startstop_INORDER_test_() ->
     {inorder,
@@ -706,6 +718,24 @@ startTwice_test_() ->
       ?_assertError(badarg,start([]))  
        }].
 \end{verbatim}
+\caption{EUnit tests}
+\label{tests}
+\end{figure}
+
+
+\subsection{The Erlang function call trace}
+\label{function-traces} 
+
+We use the Erlang tracing mechanism to collect trace data from the execution of EUnit tests. Running tracing on calls to the API functions of the SUT allow us to see which functions are called, as well as the arguments on which they are called. Running all the Eunit tests will give us a single (Erlang) trace, which needs to be analysed in two ways.
+\begin{itemize}
+\item
+We need to be able to split the trace into a series of traces, one for each EUnit test.
+\item
+We also need to be able to distinguish between positive traces and negative traces. 
+\end{itemize}
+In order to do this we ensure that the Erlang trace also contains information about calls to dummy functions that record the beginning and end of each EUnit test by calls to the functions \texttt{open/1} and \texttt{close/1}. We also mark the tests for a negative outcome by a call to \texttt{test\_negative}.
+
+An Erlang trace of this form is fully parenthesised by matching pairs of calls to \texttt{open/1} and \texttt{close/1}, and so it is straightforward to write a recursive-descent parser to parse the Erlang traces into sets of positive and negative test traces. For example, the tests in Figure \ref{tests}
 when executed with our instrumentation gives the  trace of Erlang function calls shown in Figure \ref{tracing-eunit}.
 \begin{figure}
 \begin{verbatim}
@@ -1041,8 +1071,86 @@ We acknowledge the European Commission for its support of the ProTest project, F
 
 
 
-\bibliography{mybib}{}
 \bibliographystyle{plain}
+
+\begin{thebibliography}{10}
+
+\bibitem{arts2010test}
+T.~Arts and S.~Thompson.
+\newblock {From test cases to FSMs: augmented test-driven development and
+  property inference}.
+\newblock In {\em Proceedings of the 9th ACM SIGPLAN workshop on Erlang}, pages
+  1--12. ACM, 2010.
+
+\vfill\eject
+\bibitem{beck2003test}
+K.~Beck.
+\newblock {\em {Test-driven development: by example}}.
+\newblock Addison-Wesley Professional, 2003.
+
+\bibitem{eunit}
+Richard Carlsson and Micka\"{e}l R\'{e}mond.
+\newblock {EUnit: a lightweight unit testing framework for Erlang}.
+\newblock In {\em {Proceedings of the 2006 ACM SIGPLAN workshop on Erlang}},
+  ERLANG '06, New York, NY, USA, 2006.
+
+\bibitem{QuickSpec}
+Koen Claessen, Nicholas Smallbone, and John Hughes.
+\newblock {QuickSpec: guessing formal specifications using testing}.
+\newblock In {\em {Proceedings of the 4th international conference on Tests and
+  proofs}}, TAP'10. Springer-Verlag, 2010.
+
+\bibitem{dupont2008qsm}
+P.~Dupont, B.~Lambeau, C.~Damas, and A.~van Lamsweerde.
+\newblock {The QSM algorithm and its application to software behavior model
+  induction}.
+\newblock {\em Applied Artificial Intelligence}, 22(1):77--115, 2008.
+
+\bibitem{eunit_user_guide}
+{EUnit User's Guide}.
+\newblock http://www.erlang.org/doc/apps/eunit/chapter.html.
+
+\bibitem{RefTest2011}
+Huiqing Li, Simon Thompson, and Thomas Arts.
+\newblock {Extracting Properties from Test Cases by Refactoring}.
+\newblock In Steve Counsell, editor, {\em Proceedings of the Refactoring and
+  Testing Workshop (RefTest 2011)}. IEEE digital library, 2011.
+
+\bibitem{inference}
+José Sempere and Pedro García, editors.
+\newblock {\em {Grammatical Inference: Theoretical Results and Applications;
+  10th International Colloquium, ICGI 2010, Valencia, Spain}}, volume 6339 of
+  {\em Lecture Notes in Computer Science}.
+\newblock Springer-Verlag, 2010.
+
+\bibitem{statechum}
+{StateChum}.
+\newblock http://statechum.sourceforge.net/.
+
+\bibitem{walkinshaw2008inferring}
+N.~Walkinshaw and K.~Bogdanov.
+\newblock {Inferring Finite-State Models with Temporal Constraints}.
+\newblock In {\em {Proceedings of the 2008 23rd IEEE/ACM International
+  Conference on Automated Software Engineering}}, ASE '08, Washington, DC, USA,
+  2008. IEEE Computer Society.
+
+\bibitem{walkinshaw2007reverse}
+N.~Walkinshaw, K.~Bogdanov, M.~Holcombe, and S.~Salahuddin.
+\newblock {Reverse engineering state machines by interactive grammar
+  inference}.
+\newblock In {\em Working Conference on Reverse Engineering}, pages 209--218,
+  2007.
+
+\bibitem{STAMINA}
+Neil Walkinshaw, Kirill Bogdanov, Christophe Damas, Bernard Lambeau, and Pierre
+  Dupont.
+\newblock {A Framework for the Competitive Evaluation of Model Inference
+  Techniques}.
+\newblock In {\em {1st International Workshop on Model Inference In Testing}},
+  2010.
+
+\end{thebibliography}
+
 
 \end{document}
 

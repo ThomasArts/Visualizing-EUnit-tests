@@ -1,4 +1,4 @@
-This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=pdflatex 2007.12.14)  4 JUL 2011 14:40
+This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=pdflatex 2007.12.14)  1 AUG 2011 14:54
 entering extended mode
 \write18 enabled.
  file:line:error style messages enabled.
@@ -47,6 +47,13 @@ File: size10.clo 2005/09/16 v1.4f Standard LaTeX file (size option)
 \@authori=\count90
 \@measbox=\box26
 )
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/fontenc.sty
+Package: fontenc 2005/09/27 v1.99g Standard LaTeX package
+
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/t1enc.def
+File: t1enc.def 2005/09/27 v1.99g Standard LaTeX file
+LaTeX Font Info:    Redeclaring font encoding T1 on input line 43.
+))
 (/usr/local/texlive/2007/texmf-dist/tex/latex/base/inputenc.sty
 Package: inputenc 2006/05/05 v1.1b Input encoding file
 \inpenc@prehook=\toks16
@@ -102,22 +109,22 @@ Package: alltt 1997/06/16 v2.0g defines alltt environment
 (./TAPLST-ews2011.aux)
 \openout1 = `TAPLST-ews2011.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 9.
-LaTeX Font Info:    ... okay on input line 9.
-LaTeX Font Info:    Try loading font information for OT1+ptm on input line 9.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Try loading font information for T1+ptm on input line 15.
 
-(/usr/local/texlive/2007/texmf-dist/tex/latex/psnfss/ot1ptm.fd
-File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
+(/usr/local/texlive/2007/texmf-dist/tex/latex/psnfss/t1ptm.fd
+File: t1ptm.fd 2001/06/04 font definitions for T1/ptm.
 )
 (/usr/local/texlive/2007/texmf-dist/tex/latex/ucs/ucsencs.def
 File: ucsencs.def 2003/11/29 Fixes to fontencodings LGR, T3
@@ -134,107 +141,109 @@ File: ucsencs.def 2003/11/29 Fixes to fontencodings LGR, T3
 \MPnumerator=\count97
 \everyMPtoPDFconversion=\toks22
 )
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <18> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 31.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 31.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 31.
- (/usr/local/texlive/2007/texmf-dist/tex/latex/psnfss/omsptm.fd
+LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <18> not available
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 37.
+LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <14> not available
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 37.
+LaTeX Font Info:    Try loading font information for T1+cmss on input line 37.
+ (/usr/local/texlive/2007/texmf-dist/tex/latex/base/t1cmss.fd
+File: t1cmss.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 37.
+
+(/usr/local/texlive/2007/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <7> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 31.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <11> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 33.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 37.
+LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <11> not available
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 39.
+LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <9> not available
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 49.
+LaTeX Font Info:    Font shape `T1/ptm/bx/it' in size <9> not available
+(Font)              Font shape `T1/ptm/b/it' tried instead on input line 49.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <9> on input line 49.
+(Font)              <9> on input line 66.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 49.
+(Font)              <6> on input line 66.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 49.
+(Font)              <5> on input line 66.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 49.
- [1{/usr/local/texlive/2007/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+(Font)              <8> on input line 66.
+LaTeX Font Info:    Try loading font information for T1+cmtt on input line 66.
+
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/t1cmtt.fd
+File: t1cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+) [1{/usr/local/texlive/2007/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
 ]
-<pictures/fsm1.pdf, id=13, 768.47098pt x 342.07799pt>
+<pictures/fsm1.pdf, id=14, 768.47098pt x 342.07799pt>
 File: pictures/fsm1.pdf Graphic file (type pdf)
  <use pictures/fsm1.pdf>
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 91.
-
 [2 <./pictures/fsm1.pdf
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./pictures/fsm1.pdf): PDF inclusion:
  Page Group detected which pdfTeX can't handle. Ignoring it.
 >]
-Overfull \hbox (0.9722pt too wide) in paragraph at lines 249--249
-[]    \OT1/cmtt/m/n/9 lists:partition(fun(Trace) -> Trace==[pos] end,[] 
+Overfull \hbox (0.91617pt too wide) in paragraph at lines 267--267
+[]    \T1/cmtt/m/n/9 lists:partition(fun(Trace) -> Trace==[pos] end,[] 
  []
 
 
-Overfull \hbox (0.9722pt too wide) in paragraph at lines 249--249
-[]    \OT1/cmtt/m/n/9 lists:partition(fun(Trace) -> Trace==[neg] end,[] 
+Overfull \hbox (0.91617pt too wide) in paragraph at lines 267--267
+[]    \T1/cmtt/m/n/9 lists:partition(fun(Trace) -> Trace==[neg] end,[] 
  []
 
 
-Overfull \hbox (5.69714pt too wide) in paragraph at lines 249--249
-[]    \OT1/cmtt/m/n/9 splitonhead(lists:usort([Map(E) || [E|_]<-Ts2]),[] 
+Overfull \hbox (5.64001pt too wide) in paragraph at lines 267--267
+[]    \T1/cmtt/m/n/9 splitonhead(lists:usort([Map(E) || [E|_]<-Ts2]),[] 
  []
 
 
-Overfull \hbox (5.69714pt too wide) in paragraph at lines 249--249
-[]    \OT1/cmtt/m/n/9 Apta#agd{aSt = ifadd(Apta#agd.aSt,Accept,State),[] 
+Overfull \hbox (5.64001pt too wide) in paragraph at lines 267--267
+[]    \T1/cmtt/m/n/9 Apta#agd{aSt = ifadd(Apta#agd.aSt,Accept,State),[] 
  []
 
 
-Overfull \hbox (5.69714pt too wide) in paragraph at lines 249--249
-[]             \OT1/cmtt/m/n/9 rSt = ifadd(Apta#agd.rSt,Reject,State),[] 
+Overfull \hbox (5.64001pt too wide) in paragraph at lines 267--267
+[]             \T1/cmtt/m/n/9 rSt = ifadd(Apta#agd.rSt,Reject,State),[] 
  []
 
-<pictures/fsm2.pdf, id=26, 768.47098pt x 342.07799pt>
-File: pictures/fsm2.pdf Graphic file (type pdf)
- <use pictures/fsm2.pdf>
-<pictures/fsm3.pdf, id=27, 768.47098pt x 256.157pt>
-File: pictures/fsm3.pdf Graphic file (type pdf)
- <use pictures/fsm3.pdf>
-<pictures/fsm4.pdf, id=28, 774.895pt x 480.99701pt>
+<pictures/pic2.pdf, id=27, 896.34875pt x 374.39874pt>
+File: pictures/pic2.pdf Graphic file (type pdf)
+ <use pictures/pic2.pdf>
+<pictures/pic3.pdf, id=28, 906.38625pt x 288.07625pt>
+File: pictures/pic3.pdf Graphic file (type pdf)
+ <use pictures/pic3.pdf>
+<pictures/fsm4.pdf, id=29, 774.895pt x 480.99701pt>
 File: pictures/fsm4.pdf Graphic file (type pdf)
  <use pictures/fsm4.pdf>
-[3 <./pictures/fsm2.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./pictures/fsm2.pdf): PDF inclusion:
- Page Group detected which pdfTeX can't handle. Ignoring it.
-> <./pictures/fsm3.pdf
-
-pdfTeX warning: /usr/texbin/pdflatex (file ./pictures/fsm3.pdf): PDF inclusion:
- Page Group detected which pdfTeX can't handle. Ignoring it.
-> <./pictures/fsm4.pdf
+[3 <./pictures/pic2.pdf> <./pictures/pic3.pdf> <./pictures/fsm4.pdf
 
 pdfTeX warning: /usr/texbin/pdflatex (file ./pictures/fsm4.pdf): PDF inclusion:
  Page Group detected which pdfTeX can't handle. Ignoring it.
 >]
-Overfull \hbox (0.9722pt too wide) in paragraph at lines 415--415
-[]              \OT1/cmtt/m/n/9 non_empty(set(elements([x,w,y,z])))},[] 
+Overfull \hbox (0.91617pt too wide) in paragraph at lines 436--436
+[]              \T1/cmtt/m/n/9 non_empty(set(elements([x,w,y,z])))},[] 
  []
 
-[4] <pictures/fsm5.pdf, id=64, 806.212pt x 509.102pt>
+[4] <pictures/fsm5.pdf, id=65, 806.212pt x 509.102pt>
 File: pictures/fsm5.pdf Graphic file (type pdf)
  <use pictures/fsm5.pdf>
-Overfull \hbox (1.84842pt too wide) in paragraph at lines 478--480
+Overfull \hbox (1.84842pt too wide) in paragraph at lines 499--502
  [] 
  []
 
-<pictures/fsm6.pdf, id=65, 651.53049pt x 159.42519pt>
+<pictures/fsm6.pdf, id=66, 651.53049pt x 159.42519pt>
 File: pictures/fsm6.pdf Graphic file (type pdf)
  <use pictures/fsm6.pdf>
-<pictures/fsm7.pdf, id=66, 480.80045pt x 158.14279pt>
+<pictures/fsm7.pdf, id=67, 480.80045pt x 158.14279pt>
 File: pictures/fsm7.pdf Graphic file (type pdf)
  <use pictures/fsm7.pdf>
-Overfull \hbox (0.54338pt too wide) in paragraph at lines 534--544
-[]\OT1/ptm/m/n/9 Given this choice in im-ple-men-ta-tion, the ques-tion arises 
-whether
+Overfull \hbox (0.54338pt too wide) in paragraph at lines 558--568
+[]\T1/ptm/m/n/9 Given this choice in im-ple-men-ta-tion, the ques-tion arises w
+hether
  []
 
 [5 <./pictures/fsm5.pdf
@@ -253,68 +262,71 @@ pdfTeX warning: /usr/texbin/pdflatex (file ./pictures/fsm7.pdf): PDF inclusion:
 File: uni-32.def 2004/10/17 UCS: Unicode data U+2000..U+20FF
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <8> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 684.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 732.
  [6]
-Underfull \vbox (badness 4316) has occurred while \output is active []
-
-
-Overfull \hbox (0.9722pt too wide) in paragraph at lines 802--802
-[]  \OT1/cmtt/m/n/9 eunit_tracing:test_negative(?assertError(X, Y))).[] 
+Overfull \hbox (0.91617pt too wide) in paragraph at lines 832--832
+[]  \T1/cmtt/m/n/9 eunit_tracing:test_negative(?assertError(X, Y))).[] 
  []
 
 
-Overfull \hbox (15.14703pt too wide) in paragraph at lines 802--802
-[]  \OT1/cmtt/m/n/9 eunit_tracing:negative_wrap(?'_assertError'(X, Y))).[] 
+Overfull \hbox (15.0877pt too wide) in paragraph at lines 832--832
+[]  \T1/cmtt/m/n/9 eunit_tracing:negative_wrap(?'_assertError'(X, Y))).[] 
  []
 
 
-Overfull \hbox (5.69714pt too wide) in paragraph at lines 802--802
-[]\OT1/cmtt/m/n/9 % Also includes definitions of assertExitTrace, etc.[] 
+Overfull \hbox (5.64001pt too wide) in paragraph at lines 832--832
+[]\T1/cmtt/m/n/9 % Also includes definitions of assertExitTrace, etc.[] 
  []
 
 
-Overfull \hbox (4.52751pt too wide) in paragraph at lines 814--815
-\OT1/ptm/m/n/9 are re-placed by calls to the cor-re-spond-ing macros \OT1/cmtt/
-m/n/9 assertXXXTrace\OT1/ptm/m/n/9 ,
+Overfull \hbox (4.51213pt too wide) in paragraph at lines 844--845
+\T1/ptm/m/n/9 are re-placed by calls to the cor-re-spond-ing macros \T1/cmtt/m/
+n/9 assertXXXTrace\T1/ptm/m/n/9 ,
  []
 
 [7]
-Overfull \hbox (15.14703pt too wide) in paragraph at lines 869--869
-[]         \OT1/cmtt/m/n/9 {setup,test__wrap(Setup),test__wrap(Tests)}};[] 
+Overfull \hbox (15.0877pt too wide) in paragraph at lines 899--899
+[]         \T1/cmtt/m/n/9 {setup,test__wrap(Setup),test__wrap(Tests)}};[] 
  []
 
-[8] [9] (./TAPLST-ews2011.bbl
-Overfull \hbox (7.8037pt too wide) in paragraph at lines 34--36
-[]\OT1/ptm/m/n/8 EUnit User's Guide.  http://www.erlang.org/doc/apps/eunit/chap
-ter.html.  
+
+Underfull \vbox (badness 4779) has occurred while \output is active []
+
+ [8]
+[9]
+Overfull \hbox (7.8037pt too wide) in paragraph at lines 1110--1112
+[]\T1/ptm/m/n/8 EUnit User's Guide.  http://www.erlang.org/doc/apps/eunit/chapt
+er.html.  
  []
 
 (/usr/local/texlive/2007/texmf-dist/tex/latex/ucs/data/uni-0.def
 File: uni-0.def 2004/10/17 UCS: Unicode data U+0000..U+00FF
-)) [10]
+) [10]
 (./TAPLST-ews2011.aux) ) 
 Here is how much of TeX's memory you used:
- 2299 strings out of 94073
- 29441 string characters out of 1162983
- 86372 words of memory out of 1500000
- 5568 multiletter control sequences out of 10000+50000
- 26362 words of font info for 51 fonts, out of 1200000 for 2000
+ 2539 strings out of 94073
+ 32141 string characters out of 1162983
+ 84444 words of memory out of 1500000
+ 5797 multiletter control sequences out of 10000+50000
+ 46787 words of font info for 54 fonts, out of 1200000 for 2000
  645 hyphenation exceptions out of 8191
- 29i,9n,23p,834b,599s stack positions out of 5000i,500n,6000p,200000b,5000s
-{/usr/local/texlive/2007/texmf-dist/fonts/enc/dvips/bas
-e/8r.enc}</usr/local/texlive/2007/texmf-dist/fonts/type1/bluesky/cm/cmr9.pfb></
-usr/local/texlive/2007/texmf-dist/fonts/type1/bluesky/cm/cmss9.pfb></usr/local/
-texlive/2007/texmf-dist/fonts/type1/bluesky/cm/cmsy7.pfb></usr/local/texlive/20
-07/texmf-dist/fonts/type1/bluesky/cm/cmsy8.pfb></usr/local/texlive/2007/texmf-d
-ist/fonts/type1/bluesky/cm/cmsy9.pfb></usr/local/texlive/2007/texmf-dist/fonts/
-type1/bluesky/cm/cmtt8.pfb></usr/local/texlive/2007/texmf-dist/fonts/type1/blue
-sky/cm/cmtt9.pfb></usr/local/texlive/2007/texmf-dist/fonts/type1/urw/times/utmb
-8a.pfb></usr/local/texlive/2007/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></u
-sr/local/texlive/2007/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/t
-exlive/2007/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on TAPLST-ews2011.pdf (10 pages, 192302 bytes).
+ 29i,9n,23p,944b,597s stack positions out of 5000i,500n,6000p,200000b,5000s
+{/usr/local/texlive/2007/texmf-dist/fonts/enc/dvips/cm-
+super/cm-super-t1.enc}{/usr/local/texlive/2007/texmf-dist/fonts/enc/dvips/base/
+8r.enc}</usr/local/texlive/2007/texmf-dist/fonts/type1/bluesky/cm/cmr9.pfb></us
+r/local/texlive/2007/texmf-dist/fonts/type1/bluesky/cm/cmsy7.pfb></usr/local/te
+xlive/2007/texmf-dist/fonts/type1/bluesky/cm/cmsy8.pfb></usr/local/texlive/2007
+/texmf-dist/fonts/type1/bluesky/cm/cmsy9.pfb></usr/local/texlive/2007/texmf-dis
+t/fonts/type1/public/cm-super/sfss0900.pfb></usr/local/texlive/2007/texmf-dist/
+fonts/type1/public/cm-super/sftt0800.pfb></usr/local/texlive/2007/texmf-dist/fo
+nts/type1/public/cm-super/sftt0900.pfb></usr/local/texlive/2007/texmf-dist/font
+s/type1/urw/times/utmb8a.pfb></usr/local/texlive/2007/texmf-dist/fonts/type1/ur
+w/times/utmbi8a.pfb></usr/local/texlive/2007/texmf-dist/fonts/type1/urw/times/u
+tmr8a.pfb></usr/local/texlive/2007/texmf-dist/fonts/type1/urw/times/utmr8a.pfb>
+</usr/local/texlive/2007/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on TAPLST-ews2011.pdf (10 pages, 332946 bytes).
 PDF statistics:
- 150 PDF objects out of 1000 (max. 8388607)
+ 155 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 131072)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
