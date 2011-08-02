@@ -16,3 +16,15 @@
 
 %% Defines the module in which the tracing functions live.
 -define(tracing,'eunit_tracing').
+
+%% Defines a record for tracing purposes: includes all the information
+%% about a function call in a test: hence a "trace item" or titem.
+
+-record(titem, {id,     % id of test giving rise to this item: line number
+		mod,    % module of function called
+		func,   % function called
+		args,   % arguments of function call
+		pn,     % polarity: pos or neg
+		pat,    % pattern specifying expected result of function call
+		res}).  % actual result of function call
+
