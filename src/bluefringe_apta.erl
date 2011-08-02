@@ -71,10 +71,12 @@ breathfirst(Apta, State, Traces, Map) ->
                               NS, Tls, Map)
               end,NewApta,Transitions).
 
+st(Tuple) -> hd(tuple_to_list(Tuple)).
+
 splitonhead([],_,_Map) ->
   [];
 splitonhead([Hd|Hds],Traces,Map) ->
-  [{Hd,[Tls || [E|Tls]<-Traces, Map(E)==Hd]} | splitonhead(Hds,Traces,Map)].            
+  [{Hd,[Tls || [E|Tls]<-Traces, st(Map(E))==st(Hd)]} | splitonhead(Hds,Traces,Map)].            
   
 ifadd(List,Set,Elem) when Set=/=[]->
   [Elem|List];
