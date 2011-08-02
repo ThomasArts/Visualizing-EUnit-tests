@@ -98,12 +98,12 @@ merge_one_tr(St1, St2, {_, _, _} = Tupla, Final) ->
     merge_one_tr(replace_3t(St2, St1, Tupla), Final, []).
 merge_one_tr({_, _, _} = Tupla, [], DoneF) ->
     {[Tupla | DoneF], []};
-merge_one_tr({Ori, Tra, Dest} = Tupla, [{Ori, Tra, Dest}|Tail], DoneF) ->
-    {[Tupla|Tail]++DoneF, []};
-merge_one_tr({Ori, Tra, Dest1} = T1, [{Ori, Tra, Dest2}|Tail], DoneF) when Dest1 < Dest2 ->
-    {[T1|(Tail++DoneF)], [{Dest1,Dest2}]};
-merge_one_tr({Ori, Tra, Dest1}, [{Ori, Tra, Dest2} = T2|Tail], DoneF) when Dest2 < Dest1 ->
-    {[T2|(Tail++DoneF)], [{Dest2,Dest1}]};
+merge_one_tr({Ori, {Tra, ExtraInfo}, Dest}, [{Ori, {Tra, ExtraInfo2}, Dest}|Tail], DoneF) ->
+    {[{Ori, {Tra, ExtraInfo ++ ExtraInfo2}, Dest}|Tail]++DoneF, []};
+merge_one_tr({Ori, {Tra, ExtraInfo}, Dest1}, [{Ori, {Tra, ExtraInfo2}, Dest2}|Tail], DoneF) when Dest1 < Dest2 ->
+    {[{Ori, {Tra, ExtraInfo ++ ExtraInfo2}, Dest1}|(Tail++DoneF)], [{Dest1,Dest2}]};
+merge_one_tr({Ori, {Tra, ExtraInfo}, Dest1}, [{Ori, {Tra, ExtraInfo2}, Dest2}|Tail], DoneF) when Dest2 < Dest1 ->
+    {[{Ori, {Tra, ExtraInfo ++ ExtraInfo2}, Dest2}|(Tail++DoneF)], [{Dest2,Dest1}]};
 merge_one_tr({_, _, _} = Tupla1, [Tupla2|Tail], DoneF) ->
     merge_one_tr(Tupla1, Tail, [Tupla2|DoneF]).
 

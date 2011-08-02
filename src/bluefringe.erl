@@ -10,7 +10,7 @@
 -include("../include/visualize.hrl").
 
 %% API
--export([dot/1,dot/2,qsm/1]).
+-export([dot/1,dot/2,qsm/1,rei/1]).
 -import(bluefringe_merge,[merge/3,number_of_merges/3]).
 
 dot({Positive,Negative}) ->
@@ -31,6 +31,17 @@ dot({Positive,Negative},Abstract) ->
 qsm({PT, NT}) ->
   Aut = bluefringe_apta:generateApta({PT, NT}),
   remove_floating_states(iterate_all({Aut, [Aut#fa.iSt]}, {PT, NT})).
+
+%%====================================================================
+%% API
+%%====================================================================
+%%--------------------------------------------------------------------
+%% Function: rei(Automaton)
+%% Description: Removes abstraction extra information from the automaton
+%%--------------------------------------------------------------------
+
+rei(Automaton) ->
+  Automaton#fa{tr = [{Ori, Tr, Dest} || {Ori, {Tr, _ExtraInfo}, Dest} <- Automaton#fa.tr]}.
 
 %%--------------------------------------------------------------------
 %% Function: iterate({{Automata, OptimizedExtraInfo}, Red}, Traces)
@@ -81,7 +92,7 @@ checkAutomata(Aut, {PT, NT}) ->
 
 advanceTrace(_Aut, {State, []}) -> State;
 advanceTrace(Aut, {State, [Head|Tail]}) ->
-  case [To || {StateN, HeadN, To} <- Aut#fa.tr, StateN =:= State, HeadN =:= Head] of
+  case [To || {StateN, {HeadN, _}, To} <- Aut#fa.tr, StateN =:= State, HeadN =:= Head] of
     [NewState] -> advanceTrace(Aut, {NewState, Tail});
     [] -> outOfAutomata
   end.
