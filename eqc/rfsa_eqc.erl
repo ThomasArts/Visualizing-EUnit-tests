@@ -193,6 +193,23 @@ prop_statistic() ->
         collect(which_automata(QsmRes,BlueRes), true)
       end)).
 
+reverse_abstraction(Trace, N) -> [{E, N} || E <- Trace].
+
+prop_abstraction() ->
+	?FORALL(Automata,automata(),
+			?FORALL(S,automata_sample(Automata),
+					begin
+						Abstraction = fun ({A, _B}) -> A end,
+						Pos1 = [reverse_abstraction(Seq, 1) || {Seq,pos} <- S],
+						Pos2 = [reverse_abstraction(Seq, 2) || {Seq,pos} <- S],
+						Neg1 = [reverse_abstraction(Seq, 1) || {Seq,neg} <- S],
+						Pos = [Seq || {Seq,pos} <- S],
+						Neg = [Seq || {Seq,neg} <- S],
+						BlueRes = bluefringe:rei(bluefringe:qsm({Pos1 ++ Pos2, Neg1}, Abstraction)),
+						BlueRes2 = bluefringe:rei(bluefringe:qsm({Pos, Neg})),
+						equals(BlueRes, BlueRes2)
+					end)).
+			
 customAccepted(Auto) -> fun (X) -> accepted(Auto, X) end.
 
 customWeakAccepted(Auto) -> fun (X) -> weak_accepted(Auto, X) end.
