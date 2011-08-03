@@ -17,7 +17,7 @@ dot({Positive,Negative}) ->
   dot({Positive,Negative},fun(X) -> X end).
 
 dot({Positive,Negative},Abstract) ->
-  bluefringe_dot:visualize(qsm({Positive,Negative},Abstract),fun(X) -> X end).
+  bluefringe_dot:visualize(qsm({Positive,Negative},Abstract)).
 
 
 %%====================================================================
