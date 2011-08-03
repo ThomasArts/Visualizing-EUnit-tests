@@ -44,6 +44,16 @@ generateApta({Sp, Sm},Map) ->
       exit(both_pos_and_neg)
   end.
 
+remove_duplicates(_N, []) -> [];
+remove_duplicates(_N, [Elem]) -> [Elem]; 
+remove_duplicates(N, [Elem1, Elem2|Tail]) ->
+	case {element(N, Elem1), element(N, Elem2)} of
+		{Same, Same} -> remove_duplicates(N, [Elem1|Tail]);
+		{One, Another} -> [One|remove_duplicates(N, [Another|Tail])]
+	end.
+
+ksort(N, T) -> remove_duplicates(N, lists:keysort(N, T)).
+
 breathfirst(Apta, _State, [], _Map) ->
   Apta;
 breathfirst(Apta, State, Traces, Map) ->
@@ -54,7 +64,7 @@ breathfirst(Apta, State, Traces, Map) ->
     lists:partition(fun(Trace) -> Trace == [neg] end, 
                     Ts1),
   SameHeads = 
-    splitonhead(lists:usort([st(Map(E)) || [E|_]<-Ts2]),
+    splitonhead(ksort(1, [Map(E) || [E|_]<-Ts2]),
                 Ts2,Map),
   {NextState,Transitions} =
     lists:foldl(fun({Hd,Tls},{NS,Trs}) ->
