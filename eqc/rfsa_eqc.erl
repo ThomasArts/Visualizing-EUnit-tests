@@ -217,7 +217,7 @@ prop_abstraction() ->
 						Neg = [Seq || {Seq,neg} <- S],
 						BlueRes = bluefringe:rei(bluefringe:qsm({Pos1 ++ Pos2, Neg1}, Abstraction)),
 						BlueRes2 = bluefringe:rei(bluefringe:qsm({Pos, Neg})),
-						equals(BlueRes, BlueRes2)
+						?WHENFAIL(io:format("Input: ~p, ~p~n", [{Pos1 ++ Pos2, Neg1},{Pos, Neg}]), equals(BlueRes, BlueRes2))
 					end)).
 			
 customAccepted(Auto) -> fun (X) -> accepted(Auto, X) end.
