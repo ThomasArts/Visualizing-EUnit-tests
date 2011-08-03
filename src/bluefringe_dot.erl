@@ -9,11 +9,14 @@
 -module(bluefringe_dot).
 
 %% API
--export([visualize/2]).
+-export([visualize/2, visualize_debug/2]).
 
-visualize({fa,States,_Tokens,InitState,Transitions,FailingStates},Abstract) ->
+visualize(Automata,Abstract) -> visualize(Automata,Abstract,"jpeg").
+
+visualize_debug(Automata,Abstract) -> visualize(Automata, Abstract,"svg").
+
+visualize({fa,States,_Tokens,InitState,Transitions,FailingStates},Abstract,Type) ->
     Name = "eunit_fsm",
-    Type = "jpeg",
     Dot = lists:flatten(["digraph G {\n",
 			 translate_initstate(InitState),
 			 lists:map(fun translate_failingstate/1, FailingStates),
