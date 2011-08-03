@@ -54,7 +54,7 @@ breathfirst(Apta, State, Traces, Map) ->
     lists:partition(fun(Trace) -> Trace == [neg] end, 
                     Ts1),
   SameHeads = 
-    splitonhead(lists:usort([Map(E) || [E|_]<-Ts2]),
+    splitonhead(lists:usort([st(Map(E)) || [E|_]<-Ts2]),
                 Ts2,Map),
   {NextState,Transitions} =
     lists:foldl(fun({Hd,Tls},{NS,Trs}) ->
@@ -76,8 +76,8 @@ st(Tuple) -> element(1, Tuple).
 splitonhead([],_,_Map) ->
   [];
 splitonhead([Hd|Hds],Traces,Map) ->
-  [{Hd,[Tls || [E|Tls]<-Traces, st(Map(E))==st(Hd)]} | splitonhead(Hds,Traces,Map)].            
-  
+  [{Hd,[Tls || [E|Tls]<-Traces, st(Map(E))==Hd]} | splitonhead(Hds,Traces,Map)].            
+
 ifadd(List,Set,Elem) when Set=/=[]->
   [Elem|List];
 ifadd(List,_,_Elem) ->
