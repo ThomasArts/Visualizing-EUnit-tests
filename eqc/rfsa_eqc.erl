@@ -6,7 +6,6 @@
 -module(rfsa_eqc).
 
 -include_lib("eqc/include/eqc.hrl").
--import(rfsa,[prefixes/1,suffixes/2,equivalent/3,lesseq/3]).
 
 -compile(export_all).
 
@@ -246,49 +245,3 @@ which_automata({QStates,_QInitState,_QTrans},{BStates,_BInitState,BFailState,_BA
     {SC, QSM} when QSM > SC -> sc;
     _ -> draw
   end.
-
-prop_automata() ->
-  ?FORALL(Automata,automata(),
-          ?FORALL(S,automata_sample(Automata),
-                  begin
-                    {automata,Q,Q0,F,Delta} = rfsa:automata(S),
-                    A = {Q,Q0,F,[],Delta},
-                    ?WHENFAIL(io:format("RFSA: ~p\n",[A]),
-                              lists:all(fun({U,Sign}) ->
-                                            case fix_accepted(A,U) of
-                                              true -> Sign==pos;
-                                              false -> Sign==neg
-                                            end
-                                        end,S))
-                  end)).
-
-
-prop_prefixes() ->
-  ?FORALL(Words,set(word()),
-          lists:all(fun(Prefix) ->
-                        lists:any(fun(Word) ->
-                                      lists:prefix(Prefix,Word)
-                                  end,[[]|Words])
-                    end,prefixes(Words))
-         ).
-
-prop_suffixes() ->
-  ?FORALL({A,B,Word,Words},{word(),word(),word(),set(word())},
-          ?IMPLIES(not (lists:prefix(A,B) or lists:prefix(B,A)),
-                   suffixes(A++Word,[ A++U || U<-Words]++[ B++U || U<-Words]) ==
-                   suffixes(Word,Words))).
-
-
-prop_eq_reflexive() ->
-  ?FORALL({U,S},{word(),signedset(word())},
-          equivalent(S,U,U)).
-
-prop_leq_transitive() ->
-  ?FORALL({U,V,W,S},{word(),word(),word(),signedset(word())},
-          ?IMPLIES(lesseq(S,U,V) andalso lesseq(S,V,W),
-                   lesseq(S,U,W))).
-
-
-prop_leq() ->
-  ?FORALL({U,V,S},{word(),word(),signedset(word())},
-          fails(lesseq(S,U,V))).
