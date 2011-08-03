@@ -118,6 +118,16 @@ accepted({_States,StartState,BadState,_Events,_} = Automata, String) ->
          end
   end.
 
+accepted_severalbadstates({_States,StartState,BadStates,_Events,_} = Automata, String) ->
+	ReachableStates = reachable(Automata,[StartState], String),
+	case ReachableStates of
+		[] -> throw(outOfAutomata);
+		_ -> case BadStates -- ReachableStates of
+				 BadStates -> true;
+				 _ -> false
+			 end
+	end.
+  
 weak_accepted({_States,StartState,BadState,_Events,_} = Automata, String) ->
   ReachableStates = reachable(Automata,[StartState], String),
   case ReachableStates of
@@ -195,7 +205,7 @@ prop_statistic() ->
       end)).
 
 customAccepted(Auto) -> fun (X) -> accepted(Auto, X) end.
-
+customAccepted_severalbadstates(Auto) -> fun (X) -> accepted_severalbadstates(Auto, X) end.
 customWeakAccepted(Auto) -> fun (X) -> weak_accepted(Auto, X) end.
 
 neg(A) -> fun (X) -> not A(X) end.
@@ -246,6 +256,21 @@ which_automata({QStates,_QInitState,_QTrans},{BStates,_BInitState,BFailState,_BA
     {SC, QSM} when QSM > SC -> sc;
     _ -> draw
   end.
+
+prop_check_apta() ->
+  ?FORALL(Automata,noshrink(?SIZED(Size,resize(Size*5,automata()))),
+    ?FORALL(S,?SIZED(Size,resize(Size*5,automata_sample(Automata))),
+      begin
+        Pos = [Seq || {Seq,pos} <- S],
+        Neg = [Seq || {Seq,neg} <- S],
+% Debug line
+%        io:format("TRY:Pos: ~p\nNeg: ~p\n", [Pos, Neg]),
+	Auto = bluefringe_apta:generateApta({Pos,Neg}),
+	Tuple = automata:automataToTuple(Auto),
+	Accepted = customAccepted_severalbadstates(Tuple),
+	?WHENFAIL(io:format("QSM: ~p\nPos: ~p\nNeg: ~p\n", [Auto, Pos, Neg]),
+		  (lists:filter(neg(Accepted), Pos) ++ lists:filter(Accepted, Neg)) =:= [])
+      end)).
 
 prop_automata() ->
   ?FORALL(Automata,automata(),
