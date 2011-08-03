@@ -71,7 +71,7 @@ breathfirst(Apta, State, Traces, Map) ->
                               NS, Tls, Map)
               end,NewApta,Transitions).
 
-st(Tuple) -> hd(tuple_to_list(Tuple)).
+st(Tuple) -> element(1, Tuple).
 
 splitonhead([],_,_Map) ->
   [];
