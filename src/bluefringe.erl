@@ -28,9 +28,14 @@ dot({Positive,Negative},Abstract) ->
 %% Description: Executes QSM algorithm with blue-finge on the lists
 %%--------------------------------------------------------------------
 
+map(Map, {PT, NT}) ->
+	{lists:map(fun (X) -> lists:map(Map, X) end, PT),
+	lists:map(fun (X) -> lists:map(Map, X) end, NT)}.
+
 qsm({PT, NT}, Map) ->
+  
   Aut = bluefringe_apta:generateApta({PT, NT}, Map),
-  remove_floating_states(iterate_all({Aut, [Aut#fa.iSt]}, {PT, NT})).
+  remove_floating_states(iterate_all({Aut, [Aut#fa.iSt]}, map(Map, {PT, NT}))).
 
 qsm({PT, NT}) -> qsm({PT, NT}, fun (X) -> X end).
 
