@@ -8,10 +8,10 @@
 
 -module(frequency_tests).
 -include_lib("eunit/include/eunit.hrl").
--import(frequency,[start/1, stop/0, allocate/0, deallocate/1]).
+-import(frequency,[start/1, stop/0, allocate/0, deallocate/1, skip/0, use_skip/0]).
 
 
-%% A single positive test.
+%% Four positive tests.
 
 startstop_test_() ->
     {inorder,
@@ -19,6 +19,14 @@ startstop_test_() ->
        ?_assertMatch(ok,stop()),
        ?_assertMatch(true,start([1])),
        ?_assertMatch(ok,stop())]}.
+
+%% A single positive test.
+
+startstop_2_test() ->
+    start([]),
+    stop(),
+    start([1]),
+    ?assertMatch(ok,stop()).
 
 % A single negative test.
 
@@ -33,6 +41,24 @@ startTwice_test_() ->
     fun (_) -> stop() end,         
       ?_assertError(badarg,start([1,2]))  
    }].
+
+skip_1_test_() ->
+    {setup,
+     fun () -> start([1]) end,
+     fun (_) -> stop() end,
+     ?_assertMatch(ok,skip())}.
+
+skip_2_test_() ->
+    {setup,
+     fun () -> start([1]),allocate() end,
+     fun (_) -> stop() end,
+     ?_assertMatch(ok,skip())}.
+
+skip_3_test_() ->
+    {setup,
+     fun () -> start([1]),allocate(),skip(),deallocate(1),skip() end,
+     fun (_) -> stop() end,
+     ?_assertMatch(ok,use_skip())}.
 
 % setup_test_() ->
 %     {setup,

@@ -1,9 +1,35 @@
+%%%-------------------------------------------------------------------
+%%% File    : eunit_macro_expander.erl
+%%% Author  : Simon Thompson
+%%% Description : Module to collect traces by running the tests against
+%%% the SUT.
+%%%
+%%% Created : Feb 2011 by Simon Thompson, Thomas Arts and Pablo Lamela
+%%% Modified: Aug 2011 by Simon Thompson
+%%%-------------------------------------------------------------------
+
 -module(eunit_macro_expander).
 
--compile(export_all).
+-export([dynamic_file/1,static_file/1]).
+
+%-compile(export_all).
 
 -include("../include/visualize.hrl").
 
+%%%-------------------------------------------------------------------
+%%
+%% Top level functions which create a modified version of the test
+%% prior to processing by EUnit, in the dynamic case, and further
+%% processing in the static case.
+%%
+%% Includes "shadow" definitions of the
+%% EUnit macros: assertXXX shadowed by assertXXXTrace etc. (which
+%% themselves call EUnit macros).
+%%
+%% These new macros are defined here, and the transformation of the
+%% tests to use shadows rather than standard macros also done here.
+%%
+%%%-------------------------------------------------------------------
 
 %% File is a String, "Module.erl".
 
@@ -16,12 +42,18 @@ file(File, Mode) ->
     NewTree = transform_tree(Mode, Tree),
     ListElements = erl_syntax:form_list_elements(NewTree),
     {Head,Body} = split(Mode, ListElements),
-    {Macros1, Macros2} = create_macros(Mode),
-    MacroTree = erl_syntax:form_list(Head++Macros1++Macros2++Body),
+    Macros = create_macros(Mode),
+    MacroTree = erl_syntax:form_list(Head++Macros++Body),
     {filename:basename(File),erl_prettypr:format(MacroTree)}.
 
-transform_tree(dynamic, Tree) -> erl_syntax_lib:map(fun transformer/1,Tree);
-transform_tree(static, Tree) -> Tree.
+%%%-------------------------------------------------------------------
+%%
+%% Create the new macros needed in the static and dynamic cases.
+%%
+%%%-------------------------------------------------------------------
+
+%% Aug 2011: Refactored to return a single list in both cases,
+%% as only ever use the appended list.
 
 create_macros(dynamic) ->
     Macros1 = [makeMacroTree(MName,test_negative) || MName <- [assertError,
@@ -32,7 +64,11 @@ create_macros(dynamic) ->
 						             '_assertExit',
 						             '_assertException',
 						             '_assertThrow']],
-    {Macros1, Macros2};
+    Macros3 = [makeMacroTree(MName,test_positive) || MName <- [assertMatch,
+						             assertEqual]],
+    Macros4 = [makeMacroTree(MName,positive_wrap) || MName <- ['_assertMatch',
+						             '_assertEqual']],
+    Macros1++Macros2++Macros3++Macros4;
 
 create_macros(static) ->
     Macros1 = [makeMacroTree_static(MName) || MName <- ['_assertMatch', assertMatch,
@@ -42,13 +78,21 @@ create_macros(static) ->
 							'_assertThrow', assertThrow]],
     Macros2 = [erl_syntax:attribute(erl_syntax:variable(define),
 				    [erl_syntax:variable("EUNIT_HRL"), erl_syntax:atom('true')])],
-    {Macros1, Macros2}.
-    
+    Macros1++Macros2.
+
+
+%%%-------------------------------------------------------------------
+%%
+%% Transform the tree: trivial in the static case.
+%%
+%%%-------------------------------------------------------------------
+
+transform_tree(dynamic, Tree) -> erl_syntax_lib:map(fun transformer/1,Tree);
+transform_tree(static, Tree) -> Tree.
 
 %% Transforms a tree, doing two things
 %%  - replaces macros of the form assertXXX
-%%    by assertXXXTrace, when these are negative
-%%    e.g. assertError,
+%%    by assertXXXTrace,
 %%  - wraps the bodies of tests and test objects inside
 %%    calls to test_wrap and test__wrap (from tracing).
 
@@ -62,6 +106,18 @@ transformer(Tree) ->
 		    variable -> erl_syntax:variable_name(MName)
 		end,
             case MacroAtomName of
+		assertEqual ->
+		   erl_syntax:macro(erl_syntax:atom(assertEqualTrace),
+				     erl_syntax:macro_arguments(Tree));
+		'_assertEqual' ->
+		   erl_syntax:macro(erl_syntax:atom('_assertEqualTrace'),
+				     erl_syntax:macro_arguments(Tree));
+		assertMatch ->
+		   erl_syntax:macro(erl_syntax:atom(assertMatchTrace),
+				     erl_syntax:macro_arguments(Tree));
+		'_assertMatch' ->
+		   erl_syntax:macro(erl_syntax:atom('_assertMatchTrace'),
+				     erl_syntax:macro_arguments(Tree));
 		assertError ->
 		   erl_syntax:macro(erl_syntax:atom(assertErrorTrace),
 				     erl_syntax:macro_arguments(Tree));
@@ -105,19 +161,19 @@ transformer(Tree) ->
 	_ -> Tree
     end.
 
+%%%-------------------------------------------------------------------
+%%
+%% Building the syntax tree for a macro definition.
+%%
+%%%-------------------------------------------------------------------
 
-%% [pre May 2011] Builds the macro definition
-%%  -define(NewName(X,Y),?tracing:Wrapper(?OldName(X,Y))).
-
-%% [from May 2011] Builds the macro definition
+%% In the dynamic case, builds the macro definition
 %%  -define(NewName(X,Y),?tracing:Wrapper(??X,?OldName(X,Y))).
+%% ??X will include the text of the first argument to the macro,
+%% namely the expected result.
 
-%% where Wrapper is test_negative for assertXXX macros and
-%% negative_wrap for _assertXXX macros.
-
-
-makeMacroTree(OldName) ->
-    makeMacroTree(OldName,test_negative).
+%% where Wrapper is test_positive / test_negative for assertXXX macros and
+%% positive_wrap / negative_wrap for _assertXXX macros.
 
 makeMacroTree(OldName,Wrapper) ->
     NewName = list_to_atom(lists:concat([OldName,"Trace"])),
@@ -131,6 +187,8 @@ makeMacroTree(OldName,Wrapper) ->
     RHS = erl_syntax:application(erl_syntax:module_qualifier(ModName,FunName),
                                  [Assert,MacApp]),
     erl_syntax:attribute(erl_syntax:atom(define),[LHS,RHS]).
+
+%% In the static case ... TO BE COMPLETED ...
 
 makeMacroTree_static(assertException) ->
     makeMacroTree_static(assertException, 3, fsm_eunit_parser_negative);
@@ -156,6 +214,12 @@ genParameters(N) -> [erl_syntax:variable("Trace")|genParameters(N, 1)].
 genParameters(1, _) -> [];
 genParameters(N, L) when N > 1 -> [erl_syntax:variable("P"++integer_to_list(L))|
 				     genParameters(N - 1, L + 1)].
+
+%%%-------------------------------------------------------------------
+%%
+%% Auxililary functions.
+%%
+%%%-------------------------------------------------------------------
 
 %% Splits the form list after the attributes
 %% (and so before the functions).
@@ -198,21 +262,26 @@ is_testFun(Atom, Arity) ->
 	   no_test
     end.
 
+%% Create the syntax tree for a wrapped test case, from the
+%% tree for the test case.
+
 wrap_test_function(Tree,FName,Module,Function) ->
     [Clause] = erl_syntax:function_clauses(Tree),
+    LineNumber = erl_syntax:abstract(erl_syntax:get_pos(Tree)),
     Body = erl_syntax:clause_body(Clause),
     Fun = erl_syntax:fun_expr([erl_syntax:clause([],none,Body)]),
     ModName = erl_syntax:atom(Module),
     FunName = erl_syntax:atom(Function),
-    RHS = erl_syntax:application(erl_syntax:module_qualifier(ModName,FunName),[Fun]),
+    RHS = erl_syntax:application(erl_syntax:module_qualifier(ModName,FunName),[Fun,LineNumber]),
     erl_syntax:function(FName,[erl_syntax:clause([],none,[RHS])]).
 
 wrap_test__function(Tree,FName,Module,Function) ->
     [Clause] = erl_syntax:function_clauses(Tree),
+    LineNumber = erl_syntax:abstract(erl_syntax:get_pos(Tree)),
     Body = erl_syntax:clause_body(Clause),
     ModName = erl_syntax:atom(Module),
     FunName = erl_syntax:atom(Function),
     RHS = erl_syntax:application(erl_syntax:module_qualifier(ModName,FunName),
-                                 [erl_syntax:block_expr(Body)]),
+                                 [erl_syntax:block_expr(Body),LineNumber]),
     erl_syntax:function(FName,[erl_syntax:clause([],none,[RHS])]).
 

@@ -8,7 +8,7 @@
 
 -module(frequency).
 -include_lib("eunit/include/eunit.hrl").
--export([start/1, stop/0, allocate/0, deallocate/1]).
+-export([start/1, stop/0, allocate/0, deallocate/1, skip/0, use_skip/0]).
 -export([init/1]).
 
 %% These are the start functions used to create and
@@ -69,3 +69,21 @@ allocate({[Freq|Free], Allocated}, Pid) ->
 deallocate({Free, Allocated}, Freq) ->
   NewAllocated=lists:keydelete(Freq, 1, Allocated),
   {[Freq|Free],  NewAllocated}.
+
+%% Included for purposes of testing
+%% the details of tracing: do calls to
+%% functions in frequency from other
+%% functions in frequency get traced too?
+
+%% Answer: only when those calls are fully qualified.
+
+skip() ->
+    case call(allocate) of
+	{ok,N} ->
+	    frequency:deallocate(N),
+	    ok;
+	_ -> ok
+    end.
+
+use_skip() ->
+    frequency:allocate(),frequency:skip(),frequency:deallocate(1),frequency:skip().
