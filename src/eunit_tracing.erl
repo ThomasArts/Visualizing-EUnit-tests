@@ -130,14 +130,16 @@ test__wrap(F,LineNumber)
 	0 ->
 	    fun () ->
 		    test_start(LineNumber),
-		    F(),
-		    test_end()
+		    Result = F(),
+		    test_end(),
+		    Result
 		end;
 	1 ->
 	    fun (X) ->
 		    test_start(LineNumber),
-		    F(X),
-		    test_end()
+		    Result = F(X),
+		    test_end(),
+		    Result
 		end;
 	_ ->
 	    error
@@ -175,26 +177,23 @@ test__wrap(F,LineNumber)
 	    {setup,
 	     open_(foreach),
 	     close_(foreach),
-	     {foreach,setup_wrap(Setup,LineNumber),teardown_wrap(Teardown,LineNumber),test_list__wrap(Tests,LineNumber)}};
+	     {foreach,foreach_setup_wrap(Setup,LineNumber),foreach_teardown_wrap(Teardown,LineNumber),test_list__wrap(Tests,LineNumber)}};
 	_ ->    
 	    map_tuple(fun (X) -> test__wrap(X,LineNumber) end,F)
     end;
 
 test__wrap(F,LineNumber) 
   when is_list(F)->
- %   lists:map(fun (X) -> test__wrap(X,LineNumber) end,F);
-    {setup,
-     open_(list),
-     close_(list),
-     lists:map(fun (X) -> test__wrap(X,LineNumber) end,F)};
+     {setup,
+      open_(list),
+      close_(list),
+      lists:map(fun (X) -> test__wrap(X,LineNumber) end,F)};
 
 test__wrap(F,_LineNumber) ->
     F.
 
-test_list__wrap(F,LineNumber) 
-  when is_list(F)->
-    lists:map(fun (X) -> test__wrap(X,LineNumber) end,F).
-
+test_list__wrap(F,_LineNumber) 
+  when is_list(F) -> F.
 
 %% Setup wrap
 setup_wrap(F,LineNumber)
@@ -225,6 +224,39 @@ setup_wrap(F,LineNumber)
 teardown_wrap(F,LineNumber) ->
     fun (R) ->
 	    test_start(LineNumber),
+	    Result = F(R),
+	    test_end(),
+	    Result
+    end.	    
+
+foreach_setup_wrap(F,LineNumber)
+  when is_function(F) ->
+    case element(2,erlang:fun_info(F,arity)) of
+	0 ->
+	    fun () ->
+		    test_start(LineNumber),
+		    Result = F(),
+		    %test_end(),
+		    Result
+		end;
+	1 ->
+	    fun (X) ->
+		    test_start(LineNumber),
+		    Result = F(X),
+		    %test_end(),
+		    Result
+		end;
+	_ ->
+	    error
+    end.
+
+
+
+%% Wrapping the teardown part of an EUnit setup.
+
+foreach_teardown_wrap(F,_LineNumber) ->
+    fun (R) ->
+	    %test_start(LineNumber),
 	    Result = F(R),
 	    test_end(),
 	    Result
