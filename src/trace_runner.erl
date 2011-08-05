@@ -234,7 +234,7 @@ flatten_test_desc({setup,Trace}) ->
     [join(lists:map(fun flatten_test_desc/1, Trace))];
 
 flatten_test_desc({foreach,Trace}) ->
-    [join(lists:map(fun flatten_test_desc/1, Trace))];
+    lists:concat(lists:map(fun flatten_test_desc/1,Trace));
 
 flatten_test_desc({list,Trace}) ->
     flatten_test_desc({inorder,Trace});
@@ -246,7 +246,7 @@ flatten_test_desc({list,Trace}) ->
 %     [[dummy]];
 
 flatten_test_desc(L) when is_list(L) ->
-    L.
+    lists:map(fun flatten_test_desc/1,L).
     
 %% Accumulate the information from multiple items
 %% into a single titem, repeatedly through the list.
