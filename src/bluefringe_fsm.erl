@@ -5,24 +5,28 @@
 
 -module(bluefringe_fsm).
 
--export([eqc_fsm/2,pp_eunit/1]).
+-export([eqc_fsm/2,eqc_fsm/3,pp_eunit/1]).
 -include("../include/visualize.hrl").
 
 
 % @spec (titem(),atom()) -> syntaxTree()
 % Writes a Bluefringe automata to file as a QuickCheck state machine template
 eqc_fsm(Automata,Module) ->
+  eqc_fsm(Automata,Module,undefined).
+
+eqc_fsm(Automata,Module,CleanupTree) ->
   SyntaxTree = 
-    to_tree(Automata,Module),
+    to_tree(Automata,Module,CleanupTree),
   lists:flatten([io_lib:format("~s\n\n",[erl_prettypr:format(T)]) || T<-SyntaxTree]).
 
-to_tree(Automata,Module) ->
+to_tree(Automata,Module,CleanupTree) ->
   %% introduce generators for transitions with different arguments
   Automata_1 = 
     rename_states(Automata),
   header(Module) ++
     generators(Automata_1) ++
-    trailer(Module,arities(Automata#fa.alph)).
+    trailer(Module,arities(Automata#fa.alph)) ++
+    cleanup(Module,CleanupTree).
 
 header(Module) ->
   [erl_syntax:attribute(erl_syntax:atom(module),[erl_syntax:atom(lists:concat([Module,"_eqc"]))]),
@@ -116,9 +120,6 @@ trailer(Module,Calls) ->
                                  ])]) ])])] ++
   % pretty printing
   [] ++
-  % cleanup function
-  [erl_syntax:function(erl_syntax:atom(cleanup),
-                       [erl_syntax:clause([erl_syntax:variable("_S")],[],[erl_syntax:atom(ok)])])] ++
   % local functions
   [ begin
       Vars = [erl_syntax:variable(lists:concat(["X",I])) || I<-lists:seq(1,Arity)],
@@ -131,6 +132,12 @@ trailer(Module,Calls) ->
                                                  Vars))]
                                              )])
     end || {Mod,Fun,Arity} <- Calls ].
+
+cleanup(Module,CleanupTree) ->
+ % cleanup function
+  [erl_syntax:function(erl_syntax:atom(cleanup),
+                       [erl_syntax:clause([erl_syntax:variable("_S")],[],
+                                          CleanupTree)])].  
 
 
 arities(Calls) ->

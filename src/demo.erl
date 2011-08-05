@@ -9,14 +9,14 @@
 
 frequency() ->
   % first run the tests to get the traces
-  {Pos,Neg} = eunit_to_fsm:dynamic("../examples/frequency.erl",
+  {{Pos,Neg},CleanupTree} = eunit_to_fsm:dynamic("../examples/frequency.erl",
                                    []),
 
   % second create an automata
   Automata = bluefringe:qsm({Pos,Neg}),
 
   % third transform automata into QuickCheck template
-  String = bluefringe_fsm:eqc_fsm(Automata,frequency),
+  String = bluefringe_fsm:eqc_fsm(Automata,frequency,CleanupTree),
   ok = file:write_file("frequency_eqc.erl",String),
 
   % Compile the QuickCheck code

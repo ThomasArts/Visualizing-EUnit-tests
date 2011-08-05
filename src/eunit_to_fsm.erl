@@ -14,18 +14,19 @@
 
 -define(negative, '-negative-').
 
-% @spec (filename(),[compiler_option()]) -> {[trace()],[trace()]}
+% @spec (filename(),[compiler_option()]) -> {{[trace()],[trace()]},syntax_tree()}
 % @doc Extract traces from EUnit file FileName_tests if it exists, otherwise assume the 
 % tests to be provided in FileName. We trace all calls to functions exported in FileName.
 % Compiler options passed as second argument.
 dynamic(FileName,Options) ->
     BaseName = list_to_atom(filename:basename(FileName,".erl")),
-    File = fix_source(FileName, fun eunit_macro_expander:dynamic_file/1),
+    {TestFile,File} = fix_source(FileName, fun eunit_macro_expander:dynamic_file/1),
     {ok,Module,Binary} = compile:file("/tmp/"++File,[binary|Options]),
     code:purge(BaseName),  % as otherwise repeated evaluations give error.
     code:delete(BaseName), % Added to purge code for module.erl
     {module,_} = code:load_binary(Module,File,Binary),
-    trace_runner:start(Module).
+    Tree = teardowns:get_cleanup(TestFile),
+    {trace_runner:start(Module),Tree}.
 
 fix_source(FileName, Expander) ->
     TestFile = filename:rootname(FileName,".erl")++"_tests.erl",
@@ -42,15 +43,16 @@ fix_source(FileName, Expander) ->
 		end
 	end,
     ok = file:write_file("/tmp/"++File,Strings),
-    File.
+    {TestFile,File}.
 
-% @spec (filename(),[compiler_option()]) -> {[trace()],[trace()]}
+% @spec (filename(),[compiler_option()]) -> {{[trace()],[trace()]},syntax_tree()}
 % @doc Staticly interprets EUnit file FileName_tests if it exists, otherwise assume the 
 % tests to be provided in FileName. The tests are not run to obtain the traces.
 % Complier_option are ignored.
 static(FileName,_Options) ->
-    File = fix_source(FileName, fun eunit_macro_expander:static_file/1),
-    static_parser:parse_file("/tmp/"++File).
+    {TestFile,File} = fix_source(FileName, fun eunit_macro_expander:static_file/1),
+    Tree = teardowns:get_cleanup(TestFile),
+    {static_parser:parse_file("/tmp/"++File),Tree}.
 
 % @spec (filename()) -> {[trace()],[trace()]}
 % @equiv erun(FileName,fun({_,F,_}) -> F end)
