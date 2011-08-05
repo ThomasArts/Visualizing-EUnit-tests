@@ -9,9 +9,9 @@
 
 -module(teardowns).
 
--export([collect_bodies/1]).               %% Top-level function
+-export([collect_bodies/1,get_cleanup/1]).   %% Top-level function
 
--export([get_all/1,zapNode/1,              %% Exported as used in HOFs.
+-export([zapNode/1,                          %% Exported as used in HOFs.
 	 map_tuple/2,zapWrapper/1]).
 
 %%%-------------------------------------------------------------------
@@ -23,15 +23,13 @@
 
 %% File is a String, "Module.erl".
 
-get_all(File) ->
+get_cleanup(File) ->
     {ok, Trees} = epp_dodger:parse_file(File),
     Tree = erl_syntax:form_list(Trees),
     NTree = erl_syntax_lib:map(fun zapNode/1,Tree),  %% zap all line number
     NTree2 = zapWrapper(NTree),                      %% information to 0.
-    Collect = collect_bodies(NTree2),                %% This does the work.
-    io:format("~p~n~n",[Collect]),
-    Strings = lists:map(fun erl_prettypr:format/1,(lists:map(fun erl_syntax:form_list/1,Collect))),
-    io:format(lists:concat(lists:map(fun (X) -> X++"\n\n\n" end,Strings))).
+    collect_bodies(NTree2).                %% This does the work.
+
     
 %%%-------------------------------------------------------------------
 %%
@@ -68,8 +66,9 @@ collect_teardowns(Tree) ->
 %% of the setup code.
 
 collect_bodies(Tree) ->
-    Teardowns = collect_teardowns(Tree),
-    lists:usort(lists:concat(lists:map(fun get_body/1,Teardowns))).
+  Teardowns = collect_teardowns(Tree),
+  Bodies = lists:usort(lists:concat(lists:map(fun get_body/1,Teardowns))),
+  [ erl_syntax:catch_expr(erl_syntax:block_expr(Body)) || Body<-Bodies ].
 
 %% Takes teardown code, checks that it ignores argument
 %% and returns the corresponding body in a singleton list;
