@@ -1,12 +1,6 @@
 -module(tradepost_tests).
 -include_lib("eunit/include/eunit.hrl").
 
-%% Modifications, SJT 5/8/11
-%%  - call to setup remains.
-%%  - Pid = setup()   added to the start of each test
-%%  - arguments removed from test functions
-%%  - arities changed in tests
-
 % This is the main point of "entry" for my EUnit testing.
 % A generator which forces setup and cleanup for each test in the testset
 
@@ -18,11 +12,11 @@ main_test_() ->
      % (I have instantiators)
      [
       % First Iteration
-      fun started_properly/0,
+      fun started_properly/1,
       % Second Iteration
-      fun identify_seller/0,
-      fun insert_item/0,
-      fun withdraw_item/0
+      fun identify_seller/1,
+      fun insert_item/1,
+      fun withdraw_item/1
      ]}.
 
 
@@ -37,18 +31,16 @@ cleanup(Pid) -> tradepost:stop(Pid).
 % I will use the introspective function for this
 
 
-started_properly() ->
+started_properly(Pid) ->
     fun() ->
-	    Pid = setup(),
             ?assertEqual(pending,tradepost:introspection_statename(Pid)),
             ?assertEqual([undefined,undefined,undefined,undefined,undefined],
                          tradepost:introspection_loopdata(Pid))
     end.
 
 % Now, we are adding the Seller API tests
-identify_seller() ->
+identify_seller(Pid) ->
     fun() ->
-	    Pid = setup(),
             % From Pending, identify seller, then state should be pending
             % loopdata should now contain seller_password
             ?assertEqual(pending,tradepost:introspection_statename(Pid)),
@@ -58,9 +50,8 @@ identify_seller() ->
                        undefined],tradepost:introspection_loopdata(Pid))
     end.
 
-insert_item() ->
+insert_item(Pid) ->
     fun() ->
-	    Pid = setup(),
             % From pending and identified seller, insert item
             % state should now be item_received, loopdata should now contain itm
             tradepost:introspection_statename(Pid),
@@ -72,9 +63,8 @@ insert_item() ->
                        undefined],tradepost:introspection_loopdata(Pid))
     end.
 
-withdraw_item() ->
+withdraw_item(Pid) ->
     fun() ->
-	    Pid = setup(),
             % identified seller and inserted item, withdraw item
             % state should now be pending, loopdata should now contain only password
             tradepost:seller_identify(Pid,seller_password),
