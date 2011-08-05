@@ -5,11 +5,11 @@
 
 -module(bluefringe_fsm).
 
--export([eqc_fsm/2]).
+-export([eqc_fsm/2,pp_eunit/1]).
 -include("../include/visualize.hrl").
 
 
-% @spec (automata(),atom()) -> syntaxTree()
+% @spec (titem(),atom()) -> syntaxTree()
 % Writes a Bluefringe automata to file as a QuickCheck state machine template
 eqc_fsm(Automata,Module) ->
   SyntaxTree = 
@@ -88,21 +88,37 @@ trailer(Module,Calls) ->
   [erl_syntax:function(
       erl_syntax:atom(lists:concat(["prop_",Module])),
       [ erl_syntax:clause([],[],[
-           erl_syntax:macro(erl_syntax:atom('FORALL'),[
+           erl_syntax:macro(erl_syntax:variable("FORALL"),[
              erl_syntax:variable("Cmds"),
              erl_syntax:application(erl_syntax:atom(commands),
-                                    [erl_syntax:macro(erl_syntax:atom('MODULE'))]),
+                                    [erl_syntax:macro(erl_syntax:variable("MODULE"))]),
              erl_syntax:block_expr([
-                erl_syntax:match_expr(erl_syntax:tuple([erl_syntax:variable("_History"),
-                                                        erl_syntax:variable("_S"),
+                erl_syntax:match_expr(erl_syntax:tuple([erl_syntax:variable("History"),
+                                                        erl_syntax:variable("S"),
                                                         erl_syntax:variable("Res")]),
                                       erl_syntax:application(erl_syntax:atom(run_commands),
-                                                            [erl_syntax:macro(erl_syntax:atom('MODULE')),
+                                                            [erl_syntax:macro(erl_syntax:variable("MODULE")),
                                                              erl_syntax:variable("Cmds")])),
-                erl_syntax:infix_expr(erl_syntax:variable("Res"),
-                                      erl_syntax:operator("=="),
-                                      erl_syntax:atom(ok))
-                                   ])]) ])])] ++
+                erl_syntax:application(erl_syntax:atom(cleanup),[erl_syntax:variable("S")]),
+                erl_syntax:macro(erl_syntax:variable("WHENFAIL"),
+                                 [erl_syntax:application(erl_syntax:atom(bluefringe_fsm),erl_syntax:atom(pp_eunit),
+                                                        [erl_syntax:application(
+                                                           erl_syntax:atom(eqc_statem),erl_syntax:atom(zip),
+                                                           [erl_syntax:variable("Cmds"),
+                                                            erl_syntax:list_comp(
+                                                              erl_syntax:variable("R"),
+                                                              [erl_syntax:generator(
+                                                                 erl_syntax:tuple([erl_syntax:underscore(),erl_syntax:variable("R")]),
+                                                                 erl_syntax:variable("History"))])])]),
+                                  erl_syntax:infix_expr(erl_syntax:variable("Res"),
+                                                        erl_syntax:operator("=="),
+                                                        erl_syntax:atom(ok))])
+                                 ])]) ])])] ++
+  % pretty printing
+  [] ++
+  % cleanup function
+  [erl_syntax:function(erl_syntax:atom(cleanup),
+                       [erl_syntax:clause([erl_syntax:variable("_S")],[],[erl_syntax:atom(ok)])])] ++
   % local functions
   [ begin
       Vars = [erl_syntax:variable(lists:concat(["X",I])) || I<-lists:seq(1,Arity)],
@@ -124,7 +140,7 @@ generators(Automata) ->
   Transitions = Automata#fa.tr,
   FromStates = Automata#fa.st,
   EQCStates = 
-    [ {From,[ {T,Call} || {F,Call,T}<-Transitions, F==From]} || From<-FromStates],
+    [ {From,[ {T,Titem} || {F,{_Abstr,Titems},T}<-Transitions, Titem<-Titems, F==From]} || From<-FromStates],
   TGen = trans_gen(EQCStates),
   [initial_state(Automata#fa.iSt)|TGen].
 
@@ -132,15 +148,14 @@ trans_gen([]) ->
   [];
 trans_gen([{From,Transitions}|Rest]) ->
   MergedCalls = 
-    lists:foldl(fun({To,{Mod,Fun,Args}},MCs) ->
+    lists:foldl(fun({To,#titem{mod = Mod, func = Fun, args = Args}},MCs) ->
                     case lists:keyfind({To,Mod,Fun},1,MCs) of
                       false ->
                         [{{To,Mod,Fun},[Args]}|MCs];
                       {_,Argss} ->
-                        [{{To,Mod,Fun},[Args|Argss]}|lists:keydelete({To,Mod,Fun},1,MCs)]
+                        [{{To,Mod,Fun},lists:usort([Args|Argss])}|lists:keydelete({To,Mod,Fun},1,MCs)]
                     end
                end,[],lists:sort(Transitions)),
-  % io:format("DBG: ~p\n",[MergedCalls]),
   Trans = 
     lists:foldr(fun({{To,Mod,Fun},Argss},Trs) when length(Argss)>1 ->
                     MergeArgs = 
@@ -194,7 +209,7 @@ rename_states(Automata) ->
 
 eqccall(_Mod,Fun,SyntaxTree) ->
   erl_syntax:tuple([erl_syntax:atom(call),
-                    erl_syntax:macro(erl_syntax:atom('MODULE')),erl_syntax:abstract(Fun),SyntaxTree]).
+                    erl_syntax:macro(erl_syntax:variable("MODULE")),erl_syntax:abstract(Fun),SyntaxTree]).
 
 mkfunc(From,Trans) ->
   erl_syntax:function(
@@ -211,3 +226,23 @@ initial_state(Name) ->
     erl_syntax:atom(initial_state),
     [ erl_syntax:clause([],[erl_syntax:atom(Name)])]).
 
+
+
+%% code from this should be asbracted and added to the pretty printing part
+
+pp_eunit([]) ->
+  io:format("\n");
+pp_eunit(Cmds) ->
+  io:format("\nnew_test() ->\n"),
+  pp(Cmds).
+
+pp([{{set,V,Call},{'EXIT',{Reason,_StackTrace}}}|Rest]) ->
+  io:format("  ?assertError(~p,~s)",[Reason,eqc_symbolic:pretty_print([],Call)]),
+  if length(Rest) > 0 -> io:format(",\n"), pp(Rest);
+     true -> io:format(".\n\n")
+  end;
+pp([{{set,V,Call},Return}|Rest]) ->
+  io:format("  ?assertMatch(~p,~s)",[Return,eqc_symbolic:pretty_print([],Call)]),
+  if length(Rest) > 0 -> io:format(",\n"), pp(Rest);
+     true -> io:format(".\n\n")
+  end.
