@@ -10,7 +10,7 @@
 frequency() ->
   % first run the tests to get the traces
   {Pos,Neg} = eunit_to_fsm:dynamic("../examples/frequency.erl",
-                                   [],fun({M,F,A}) when {M,F}=/={frequency,init} -> {M,F,A} end),
+                                   []),
 
   % second create an automata
   Automata = bluefringe:qsm({Pos,Neg}),

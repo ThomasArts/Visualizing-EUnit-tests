@@ -20,7 +20,7 @@
 -export([tester/2,         %% exported because spawned or used in HOFs.
 	 make_titems/1,
 	 cleanup_item/2,
-	 push_posneg/2]).  
+	 push_posneg/2]).
 
 %% Imports for the definition of the titem record type.
 
@@ -72,8 +72,8 @@ start(Module) ->
     % io:format("~p~n~n",[Titems]).
     
     %% Separate positve and negative traces.
-    {Pos,Neg} = lists:foldr(fun push_posneg/2, {[], []}, Titems),
-    io:format("~p~n",[{Pos, Neg}]).
+    {Pos,Neg} = lists:foldr(fun push_posneg/2, {[], []}, Titems).
+    %%%% io:format("~p~n",[{Pos, Neg}]).
 
 %%%-------------------------------------------------------------------
 %%

@@ -33,9 +33,9 @@ map(Map, {PT, NT}) ->
 	lists:map(fun (X) -> lists:map(Map, X) end, NT)}.
 
 qsm({PT, NT}, Map) ->
-  
-  Aut = bluefringe_apta:generateApta({PT, NT}, Map),
-  remove_floating_states(iterate_all({Aut, [Aut#fa.iSt]}, map(Map, {PT, NT}))).
+  ComposedMap = fun(#titem{mod=Mod,func=Func,args=Args}) -> Map({Mod,Func,Args}) end,
+  Aut = bluefringe_apta:generateApta({PT, NT}, ComposedMap),
+  remove_floating_states(iterate_all({Aut, [Aut#fa.iSt]}, map(ComposedMap, {PT, NT}))).
 
 qsm({PT, NT}) -> qsm({PT, NT}, fun (X) -> X end).
 
