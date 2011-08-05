@@ -126,10 +126,21 @@ test_wrap(F,LineNumber) ->
 
 test__wrap(F,LineNumber)
   when is_function(F) ->
-    fun () ->
-	    test_start(LineNumber),
-	    F(),
-	    test_end()
+    case element(2,erlang:fun_info(F,arity)) of
+	0 ->
+	    fun () ->
+		    test_start(LineNumber),
+		    F(),
+		    test_end()
+		end;
+	1 ->
+	    fun (X) ->
+		    test_start(LineNumber),
+		    F(X),
+		    test_end()
+		end;
+	_ ->
+	    error
     end;
 
 test__wrap(F,LineNumber)
@@ -139,12 +150,12 @@ test__wrap(F,LineNumber)
 	    {setup,
 	     open_(setup),
 	     close_(setup),
-	     {setup,test__wrap(Setup,LineNumber),test__wrap(Tests,LineNumber)}};
+	     {setup,setup_wrap(Setup,LineNumber),test__wrap(Tests,LineNumber)}};
 	{setup,Setup,Teardown,Tests} ->
 	    {setup,
 	     open_(setup),
 	     close_(setup),
-	     {setup,test__wrap(Setup,LineNumber),teardown_wrap(Teardown,LineNumber),test__wrap(Tests,LineNumber)}};
+	     {setup,setup_wrap(Setup,LineNumber),teardown_wrap(Teardown,LineNumber),test__wrap(Tests,LineNumber)}};
 	{inorder,Tests} ->
 	    {setup,
 	     open_(inorder),
@@ -164,13 +175,14 @@ test__wrap(F,LineNumber)
 	    {setup,
 	     open_(foreach),
 	     close_(foreach),
-	     {foreach,test__wrap(Setup,LineNumber),teardown_wrap(Teardown,LineNumber),test__wrap(Tests,LineNumber)}};
+	     {foreach,setup_wrap(Setup,LineNumber),teardown_wrap(Teardown,LineNumber),test_list__wrap(Tests,LineNumber)}};
 	_ ->    
 	    map_tuple(fun (X) -> test__wrap(X,LineNumber) end,F)
     end;
 
-test__wrap(F,LineNumber)
+test__wrap(F,LineNumber) 
   when is_list(F)->
+ %   lists:map(fun (X) -> test__wrap(X,LineNumber) end,F);
     {setup,
      open_(list),
      close_(list),
@@ -179,14 +191,46 @@ test__wrap(F,LineNumber)
 test__wrap(F,_LineNumber) ->
     F.
 
+test_list__wrap(F,LineNumber) 
+  when is_list(F)->
+    lists:map(fun (X) -> test__wrap(X,LineNumber) end,F).
+
+
+%% Setup wrap
+setup_wrap(F,LineNumber)
+  when is_function(F) ->
+    case element(2,erlang:fun_info(F,arity)) of
+	0 ->
+	    fun () ->
+		    test_start(LineNumber),
+		    Result = F(),
+		    test_end(),
+		    Result
+		end;
+	1 ->
+	    fun (X) ->
+		    test_start(LineNumber),
+		    Result = F(X),
+		    test_end(),
+		    Result
+		end;
+	_ ->
+	    error
+    end.
+
+
+
 %% Wrapping the teardown part of an EUnit setup.
 
 teardown_wrap(F,LineNumber) ->
     fun (R) ->
 	    test_start(LineNumber),
-	    F(R),
-	    test_end()
+	    Result = F(R),
+	    test_end(),
+	    Result
     end.	    
+
+
 
 %%%-------------------------------------------------------------------
 %%
