@@ -17,9 +17,7 @@ There is one example, in the examples directory. We use this in our explanation
 
 - Make sure your path is such that you can run your EUnit tests.
 - In order to generate traces:
-   {Pos,Neg} = eunit_to_fsm:dynamic("../examples/frequency_tests.erl",
-                                                          [],fun({M,F,A}) when {M,F}=/={frequency,init} -> {M,F,A} end).
-   The abstraction function removes calls to frequency:init/1 from the trace. In order to remove other calls, just make sure the abstraction function is undefined for those values.
+   {Pos,Neg} = eunit_to_fsm:dynamic("../examples/frequency_tests.erl", []).
 
 - Generate an abstract state machine with 
    bluefringe:qsm({Pos,Neg}).
