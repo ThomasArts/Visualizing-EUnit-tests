@@ -18,7 +18,8 @@
 	 start/2,           %% 2 argument version takes list of API functions.
 	 consistent/1]).    %% check whether a pair of trace sets is consistent
 
--export([test1/0,test2/0]). %% for testing
+-export([test1/0,test2/0,   %% for testing
+	api/0]).
 
 -export([tester/2,          %% exported because spawned or used in HOFs.
 	 make_titems/1,
@@ -52,6 +53,7 @@ start(Module,API) ->
     %% perform the Eunit tests, and log the results.
     spawn(?MODULE, tester, [Module, self()]),
     Msgs = loop([]),
+    io:format("~p~n~nlines: ~p~n~n",[Msgs,length(Msgs)]),
     
     %% Remove EUnit specific entries in the log
     MsgsE = [ Msg || Msg<-Msgs, check_eunit(Module,Msg) ],
@@ -85,7 +87,7 @@ start(Module,API) ->
     
     %% Accumulate log items together to give titems.
     Titems = lists:map(fun make_titems/1,Traces),
-    % io:format("~p~n~n",[Titems]).
+    %%%% io:format("~p~n~n",[Titems]).
     
     %% Separate positve and negative traces.
     lists:foldr(fun push_posneg/2, {[], []}, Titems).
@@ -435,8 +437,12 @@ is_initial(_,_) ->
 %%%-------------------------------------------------------------------
 	
 test1() ->
-    start(tradepost_tests, [start_link,introspection_statename,introspection_loopdata,stop,seller_identify,seller_insertitem,withdraw_item]).
+    start(tradepost_tests, api()).
 
 test2() ->
     start(frequency_tests).
+
+api() ->
+    [start_link,introspection_statename,introspection_loopdata,stop,seller_identify,seller_insertitem,withdraw_item].
+     
 

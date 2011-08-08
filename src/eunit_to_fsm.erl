@@ -10,7 +10,7 @@
 -module(eunit_to_fsm).
 
 %% API
--export([dynamic/2, static/2, file/1, file/2, alternative_file/2, visualize/1]).
+-export([dynamic/2, dynamic/3, static/2, file/1, file/2, alternative_file/2, visualize/1]).
 
 -define(negative, '-negative-').
 
@@ -18,7 +18,12 @@
 % @doc Extract traces from EUnit file FileName_tests if it exists, otherwise assume the 
 % tests to be provided in FileName. We trace all calls to functions exported in FileName.
 % Compiler options passed as second argument.
+% Optional third argument is list of API functions for the module.
+
 dynamic(FileName,Options) ->
+    dynamic(FileName,Options,none).
+
+dynamic(FileName,Options,API) ->
     BaseName = list_to_atom(filename:basename(FileName,".erl")),
     {TestFile,File} = fix_source(FileName, fun eunit_macro_expander:dynamic_file/1),
     {ok,Module,Binary} = compile:file("/tmp/"++File,[binary|Options]),
@@ -26,7 +31,12 @@ dynamic(FileName,Options) ->
     code:delete(BaseName), % Added to purge code for module.erl
     {module,_} = code:load_binary(Module,File,Binary),
     Tree = teardowns:get_cleanup(TestFile),
-    {trace_runner:start(Module),Tree}.
+    case API of
+	none ->
+	     {trace_runner:start(Module),Tree};
+	_ ->
+	    {trace_runner:start(Module,API),Tree}
+    end.
 
 fix_source(FileName, Expander) ->
     TestFile = filename:rootname(FileName,".erl")++"_tests.erl",
