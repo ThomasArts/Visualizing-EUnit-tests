@@ -14,10 +14,14 @@
 %% Runs the EUnit test functions from Module:test() (i.e. in Module.erl
 %% or Module_tests.erl) with tracing as provided by eunit_tracing.erl
 
--export([start/1,          %% function to derive pair of trace sets {Pos,Neg}
-	 consistent/1]).   %% check whether a pair of trace sets is consistent
+-export([start/1,           %% functions to derive pair of trace sets {Pos,Neg}
+	 start/2,           %% 2 argument version takes list of API functions.
+	 consistent/1]).    %% check whether a pair of trace sets is consistent
 
--export([tester/2,         %% exported because spawned or used in HOFs.
+-export([test1/0,test2/0,   %% for testing
+	api/0]).
+
+-export([tester/2,          %% exported because spawned or used in HOFs.
 	 make_titems/1,
 	 cleanup_item/2,
 	 push_posneg/2]).
@@ -39,6 +43,9 @@
 %%%-------------------------------------------------------------------
 
 start(Module) ->
+    start(Module,none).
+
+start(Module,API) ->
     %% enable tracing for the module
     Stem = stem(Module),
     eunit_tracing:t(Stem),
@@ -46,13 +53,24 @@ start(Module) ->
     %% perform the Eunit tests, and log the results.
     spawn(?MODULE, tester, [Module, self()]),
     Msgs = loop([]),
+    io:format("~p~n~nlines: ~p~n~n",[Msgs,length(Msgs)]),
     
     %% Remove EUnit specific entries in the log
     MsgsE = [ Msg || Msg<-Msgs, check_eunit(Module,Msg) ],
     %%%% io:format("~p~n~nlines: ~p~n~n",[MsgsE,length(MsgsE)]),
-    
-    %% When test opened in Pid N, discard all log entries from other processes.
-    Msgs1 = remove_alien_pids(MsgsE),
+
+    %% Filter out only those calls that are in the API. In the one argument
+    %% version, signalled by the API list none, once test is opened in Pid N,
+    %% discard all log entries from other processes.
+
+    %% In the two argument version, use the API argument and filter just those calls.
+
+    case API of
+	none ->
+	    Msgs1 = remove_alien_pids(MsgsE);
+	_API ->
+	    Msgs1 = remove_non_API(MsgsE,Stem,API)
+    end,
     %%%% io:format("~p~n~nlines: ~p~n~n",[Msgs1,length(Msgs1)]),
     
     %% Remove nested calls to functions in Module.
@@ -69,10 +87,10 @@ start(Module) ->
     
     %% Accumulate log items together to give titems.
     Titems = lists:map(fun make_titems/1,Traces),
-    % io:format("~p~n~n",[Titems]).
+    %%%% io:format("~p~n~n",[Titems]).
     
     %% Separate positve and negative traces.
-    {Pos,Neg} = lists:foldr(fun push_posneg/2, {[], []}, Titems).
+    lists:foldr(fun push_posneg/2, {[], []}, Titems).
     %%%% io:format("~p~n",[{Pos, Neg}]).
 
 %%%-------------------------------------------------------------------
@@ -118,6 +136,30 @@ check_eunit(Module,M) ->
 	{_,_,return_from,{Module,test,_},_} -> false;
 	_ -> true
     end.
+
+
+%% Remove functions from the SUT which are not in the API.
+
+%% In general the API will be a subset of the exports; can extract
+%% this automaotically if (and only if) the export is suitably commmented.
+
+remove_non_API([{trace,_,call,{M,F,_}}=Item|Msgs],Module,API) ->
+    case lists:member(F,API) orelse M=/=Module of
+	true ->
+	    [Item|remove_non_API(Msgs,Module,API)];
+	false ->
+	    remove_non_API(Msgs,Module,API)
+    end;
+
+remove_non_API([{trace,_,return_from,{M,F,_},_}=Item|Msgs],Module,API) ->
+    case lists:member(F,API) orelse M=/=Module of
+	true ->
+	    [Item|remove_non_API(Msgs,Module,API)];
+	false ->
+	    remove_non_API(Msgs,Module,API)
+    end;
+
+remove_non_API([],_,_) -> [].
 
 %% When a test is opened in Pid N, discard all trace entries from other processes,
 
@@ -233,17 +275,20 @@ flatten_test_desc({inorder,Trace}) ->
 flatten_test_desc({setup,Trace}) ->
     [join(lists:map(fun flatten_test_desc/1, Trace))];
 
+flatten_test_desc({foreach,Trace}) ->
+    lists:concat(lists:map(fun flatten_test_desc/1,Trace));
+
 flatten_test_desc({list,Trace}) ->
     flatten_test_desc({inorder,Trace});
 
-flatten_test_desc(dummy) ->
-    [dummy];
+% flatten_test_desc(dummy) ->
+%     [dummy];
 
-flatten_test_desc({_,_}) ->
-    [[dummy]];
+% flatten_test_desc({_,_}) ->
+%     [[dummy]];
 
 flatten_test_desc(L) when is_list(L) ->
-    L.
+    lists:map(fun flatten_test_desc/1,L).
     
 %% Accumulate the information from multiple items
 %% into a single titem, repeatedly through the list.
@@ -383,5 +428,21 @@ is_initial([I|Ps],[J|Ns])
     is_initial(Ps,Ns);
 is_initial(_,_) ->
     false.
-    
+
+
+%%%-------------------------------------------------------------------
+%%
+%% Tests.
+%%
+%%%-------------------------------------------------------------------
 	
+test1() ->
+    start(tradepost_tests, api()).
+
+test2() ->
+    start(frequency_tests).
+
+api() ->
+    [start_link,introspection_statename,introspection_loopdata,stop,seller_identify,seller_insertitem,withdraw_item].
+     
+
