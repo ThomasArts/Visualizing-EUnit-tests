@@ -5,7 +5,7 @@
 
 -module(bluefringe_fsm).
 
--export([eqc_fsm/2,eqc_fsm/3,pp_eunit/1]).
+-export([eqc_fsm/2,eqc_fsm/3,pp_eunit/2]).
 -include("../include/visualize.hrl").
 
 
@@ -106,7 +106,8 @@ trailer(Module,Calls) ->
                 erl_syntax:application(erl_syntax:atom(cleanup),[erl_syntax:variable("S")]),
                 erl_syntax:macro(erl_syntax:variable("WHENFAIL"),
                                  [erl_syntax:application(erl_syntax:atom(bluefringe_fsm),erl_syntax:atom(pp_eunit),
-                                                        [erl_syntax:application(
+                                                        [erl_syntax:atom(Module),
+                                                         erl_syntax:application(
                                                            erl_syntax:atom(eqc_statem),erl_syntax:atom(zip),
                                                            [erl_syntax:variable("Cmds"),
                                                             erl_syntax:list_comp(
@@ -237,19 +238,21 @@ initial_state(Name) ->
 
 %% code from this should be asbracted and added to the pretty printing part
 
-pp_eunit([]) ->
+pp_eunit(SUT,[]) ->
   io:format("\n");
-pp_eunit(Cmds) ->
+pp_eunit(SUT,Cmds) ->
   io:format("\nnew_test() ->\n"),
-  pp(Cmds).
+  pp(SUT,Cmds).
 
-pp([{{set,V,Call},{'EXIT',{Reason,_StackTrace}}}|Rest]) ->
-  io:format("  ?assertError(~p,~s)",[Reason,eqc_symbolic:pretty_print([],Call)]),
-  if length(Rest) > 0 -> io:format(",\n"), pp(Rest);
+pp(SUT,[{{set,V,Call},{'EXIT',{Reason,_StackTrace}}}|Rest]) ->
+  {call,Mod,Fun,Args} = Call,
+  io:format("  ?assertError(~p,~s)",[Reason,eqc_symbolic:pretty_print([],{call,SUT,Fun,Args})]),
+  if length(Rest) > 0 -> io:format(",\n"), pp(SUT,Rest);
      true -> io:format(".\n\n")
   end;
-pp([{{set,V,Call},Return}|Rest]) ->
-  io:format("  ?assertMatch(~p,~s)",[Return,eqc_symbolic:pretty_print([],Call)]),
-  if length(Rest) > 0 -> io:format(",\n"), pp(Rest);
+pp(SUT,[{{set,V,Call},Return}|Rest]) ->
+  {call,Mod,Fun,Args} = Call,
+  io:format("  ?assertMatch(~p,~s)",[Return,eqc_symbolic:pretty_print([],{call,SUT,Fun,Args})]),
+  if length(Rest) > 0 -> io:format(",\n"), pp(SUT,Rest);
      true -> io:format(".\n\n")
   end.
