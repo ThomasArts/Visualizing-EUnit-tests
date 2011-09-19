@@ -42,23 +42,29 @@ startTwice_test_() ->
       ?_assertError(badarg,start([1,2]))  
    }].
 
-skip_1_test_() ->
-    {setup,
-     fun () -> start([1]) end,
-     fun (_) -> stop() end,
-     ?_assertMatch(ok,skip())}.
+% skip_1_test_() ->
+%     {setup,
+%      fun () -> start([1]) end,
+%      fun (_) -> stop() end,
+%      ?_assertMatch(ok,skip())}.
 
-skip_2_test_() ->
-    {setup,
-     fun () -> start([1]),allocate() end,
-     fun (_) -> stop() end,
-     ?_assertMatch(ok,skip())}.
+% skip_2_test_() ->
+%     {setup,
+%      fun () -> start([1]),allocate() end,
+%      fun (_) -> stop() end,
+%      ?_assertMatch(ok,skip())}.
 
-skip_3_test_() ->
-    {setup,
-     fun () -> start([1]),allocate(),skip(),deallocate(1),skip() end,
-     fun (_) -> stop() end,
-     ?_assertMatch(ok,use_skip())}.
+% skip_3_test_() ->
+%     {setup,
+%      fun () -> start([1]),allocate(),skip(),deallocate(1),skip() end,
+%      fun (_) -> stop() end,
+%      ?_assertMatch(ok,use_skip())}.
+
+ new_test() ->
+   ?assertMatch(true,start([1])),
+   ?assertMatch({ok,1},allocate()),
+   ?assertError({badmatch,{error,no_frequency}},allocate()).
+
 
 % setup_test_() ->
 %     {setup,
