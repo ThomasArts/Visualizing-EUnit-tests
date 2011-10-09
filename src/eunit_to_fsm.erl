@@ -8,6 +8,7 @@
 %%% Modified: 07 Mar 2011 by Simon Thompson
 %%%-------------------------------------------------------------------
 -module(eunit_to_fsm).
+-compile(export_all).
 
 %% API
 -export([dynamic/2, dynamic/3, static/2, file/1, file/2, alternative_file/2, visualize/1]).

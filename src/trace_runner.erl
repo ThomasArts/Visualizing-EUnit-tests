@@ -53,7 +53,7 @@ start(Module,API) ->
     %% perform the Eunit tests, and log the results.
     spawn(?MODULE, tester, [Module, self()]),
     Msgs = loop([]),
-    io:format("~p~n~nlines: ~p~n~n",[Msgs,length(Msgs)]),
+    %%%% io:format("~p~n~nlines: ~p~n~n",[Msgs,length(Msgs)]),
     
     %% Remove EUnit specific entries in the log
     MsgsE = [ Msg || Msg<-Msgs, check_eunit(Module,Msg) ],
@@ -84,14 +84,16 @@ start(Module,API) ->
     %% Parse and flatten the (deep) list into a list of lists of log items.
     Structs = parse(Calls),
     Traces = flatten_struct(Structs),
-    
+    %%%% io:format("~p~n~n",[Traces]),
+
     %% Accumulate log items together to give titems.
     Titems = lists:map(fun make_titems/1,Traces),
-    %%%% io:format("~p~n~n",[Titems]).
+    %%%% io:format("~p~n~n",[Titems]),
     
     %% Separate positve and negative traces.
-    lists:foldr(fun push_posneg/2, {[], []}, Titems).
-    %%%% io:format("~p~n",[{Pos, Neg}]).
+    {Pos,Neg} = lists:foldr(fun push_posneg/2, {[], []}, Titems),
+    io:format("~p~n",[{Pos, Neg}]),
+    {Pos,Neg}.
 
 %%%-------------------------------------------------------------------
 %%

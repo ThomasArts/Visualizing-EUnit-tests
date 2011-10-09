@@ -45,7 +45,8 @@ is_setup(Node) ->
 	    Head = hd(erl_syntax:tuple_elements(Node)),
 	    case erl_syntax:type(Head) of
 		atom ->
-		    erl_syntax:atom_value(Head)==setup;
+		    erl_syntax:atom_value(Head)==setup orelse
+			erl_syntax:atom_value(Head)==foreach;
 		_ -> false
 	    end;
 	_ -> false
