@@ -20,13 +20,6 @@ startstop_test_() ->
        ?_assertMatch(true,start([1])),
        ?_assertMatch(ok,stop())]}.
 
-%% A single positive test.
-
-startstop_2_test() ->
-    start([]),
-    stop(),
-    start([1]),
-    ?assertMatch(ok,stop()).
 
 % A single negative test.
 
@@ -42,101 +35,86 @@ startTwice_test_() ->
       ?_assertError(badarg,start([1,2]))  
    }].
 
-% skip_1_test_() ->
+% A single allocate
+
+allocate_test_() ->
+  [{setup,
+    fun ()  -> start([1]) end,       
+    fun (_) -> stop() end,
+    ?_assertMatch({ok,1},allocate())
+   }].
+
+     % allocate2_test_() ->
+     %      {setup,
+     %       fun () -> ok end,
+     %       fun(_) -> stop() end,
+     %       fun () ->  ?assertMatch(true,frequency:start([1])),
+     % 		 ?assertMatch({ok,1},frequency:allocate()),
+     % 		 ?assertError({badmatch,{error,no_frequency}},frequency:allocate())
+     %       end}.
+
+   % allocate3_test_() ->
+   %      {setup,
+   %       fun () -> ok end,
+   %       fun(_) -> stop() end,
+   %       fun () ->  ?assertMatch(true,frequency:start([])),
+   %                  ?assertError({badmatch,{error,no_frequency}},frequency:allocate())
+   %       end}.
+
+
+ % xxx_test_() ->
+ %     {setup,
+ %      fun () -> ok end,
+ %      fun(_) -> stop() end,
+ %      fun () ->
+ % 	     yyy
+ %      end}.
+
+% modNew_test_() ->
 %     {setup,
-%      fun () -> start([1]) end,
-%      fun (_) -> stop() end,
-%      ?_assertMatch(ok,skip())}.
+%      fun () -> ok end,
+%      fun(_) -> stop() end,
+%      fun () ->
+% 	     ?assertMatch(true,start([1])),
+% 	     ?assertMatch({ok,1},allocate()),
+% 	     ?assertError({badmatch,{error,no_frequency}},allocate())
+%      end}.
 
-% skip_2_test_() ->
+% modNew2_test_() ->
 %     {setup,
-%      fun () -> start([1]),allocate() end,
-%      fun (_) -> stop() end,
-%      ?_assertMatch(ok,skip())}.
+%      fun () -> ok end,
+%      fun(_) -> stop() end,
+%      fun () ->
+% 	     ?assertMatch(true,start([])),
+% 	     ?assertError({badmatch,{error,no_frequency}},allocate())
+%      end}.
 
-% skip_3_test_() ->
+% modNew3_test_() ->
 %     {setup,
-%      fun () -> start([1]),allocate(),skip(),deallocate(1),skip() end,
-%      fun (_) -> stop() end,
-%      ?_assertMatch(ok,use_skip())}.
-
- new_test() ->
-   ?assertMatch(true,start([1])),
-   ?assertMatch({ok,1},allocate()),
-   ?assertError({badmatch,{error,no_frequency}},allocate()).
-
-
-% setup_test_() ->
-%     {setup,
-%      fun ()  -> start([1]),stop() end,       
-%      fun (_) -> start([4]),stop() end,         
-%      {setup,
-%       fun ()  -> start([2]),stop() end,       
-%       fun (_) -> start([3]),stop() end,         
-%       fun () -> (fun () -> ok end) end  
-%      }  
-%     }.
-
-% stopTwice_test_() ->
-%   start([]),stop(),?_assertError(badarg,stop()).   % a second stop causes failure
+%      fun () -> ok end,
+%      fun(_) -> stop() end,
+%      fun () ->
+% 	     ?assertMatch(true,start([1])),
+% 	     ?assertMatch(ok,stop()),
+% 	     ?assertMatch(true,start([1, 2]))
+%      end}.
 
 
-% %% start(), stop() and allocate(): series of allocates
-% %% note: not testing for the particular frequency returned, but rather
-% %% that a successful allocation has taken place.
-    
-% allocateFirst_test_() ->
-%   {setup,
-%    fun ()  -> ok end,             % null startup here
-%    fun (_) -> ok end,             % no cleanup to do
-%    ?_assertError(badarg,allocate())  % allocate before start causes failure
-%   }.
-
-% allocate1_test_() ->
-%   {setup,
-%    fun ()  -> start([1]) end,        % normal startup 
-%    fun (_) -> stop() end,         % cleanup
-%    ?_assertMatch({ok,_},allocate())  % one allocate is OK
-%   }.
-	     
-% allocate2_test_() ->
-%   {setup,
-%    fun ()  -> start([1]) end, % allocate one 
-%    fun (_) -> stop() end, % cleanup
-%    begin
-%      allocate(),
-%      ?_assertError(_,allocate())
-%    end   % two allocates OK
-%   }.
-
-% allocate3_test_() ->
-%   {setup,
-%    fun ()  -> start([1]) end, % allocate one 
-%    fun (_) -> stop() end, % cleanup
-%    begin
-%      allocate(),
-%      ?_assertError(_,start([1]))
-%    end   % two allocates OK
-%   }.
-
-% allocate4_test_() ->
-%   {setup,
-%    fun ()  -> start([1]) end, % allocate one 
-%    fun (_) -> stop() end, % cleanup
-%    begin
-%      allocate(),
-%      ?_assertMatch(_,start([]))
-%    end   % two allocates OK
-%   }.
+% new_test() ->
+%   ?assertMatch(true,frequency_eqc:start([1])),
+%   ?assertMatch(ok,frequency_eqc:stop()),
+%   ?assertMatch(true,frequency_eqc:start([1, 2])).
 
 
-% allocate_dealloc_test_() ->
-%   {setup,
-%    fun ()  -> start([1]) end, 
-%    fun (_) -> stop() end, % cleanup
-%    begin
-%      ?_assertMatch({ok,V},allocate()),
-%      ?_assertMatch(_,deallocate(V)),
-%      ?_assertMatch({ok,_},allocate())
-%    end  
-%   }.
+% new_test() ->
+%   ?assertMatch(true,frequency_eqc:start([])),
+%   ?assertError({badmatch,{error,no_frequency}},frequency_eqc:allocate()).
+	      
+  
+ % new_test() ->
+ %   ?assertMatch(true,start([1])),
+ %   ?assertMatch({ok,1},allocate()),
+ %   ?assertError({badmatch,{error,no_frequency}},allocate()).
+
+
+
