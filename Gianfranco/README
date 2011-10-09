@@ -1,0 +1,8 @@
+Changes made
+
+1. Removed dialyzer from Makefile.
+
+2. Changed definition of NODE_ROOT from wn_file_layer.erl to path in my file space.
+   NB path must end with / 
+
+3. Added -include_lib("eunit/include/eunit.hrl") to the non-test file so that XXX:test() invokes the tests.
