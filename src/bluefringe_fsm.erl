@@ -134,8 +134,13 @@ trailer(Module,Calls) ->
                                              )])
     end || {Mod,Fun,Arity} <- Calls ].
 
+cleanup(Module,[]) ->
+  % There is no proper cleanup, but we provide the function
+  [erl_syntax:function(erl_syntax:atom(cleanup),
+                       [erl_syntax:clause([erl_syntax:variable("_S")],[],
+                                           [erl_syntax:atom(none)])])];
 cleanup(Module,CleanupTree) ->
- % cleanup function
+  % cleanup function
   [erl_syntax:function(erl_syntax:atom(cleanup),
                        [erl_syntax:clause([erl_syntax:variable("_S")],[],
                                           CleanupTree)])].  
