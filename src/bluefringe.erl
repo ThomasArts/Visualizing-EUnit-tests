@@ -10,7 +10,7 @@
 -include("../include/visualize.hrl").
 
 %% API
--export([dot/1,dot/2,qsm/1,qsm/2,rei/1]).
+-export([dot/1,dot/2,simple_dot/1,simple_dot/2,qsm/1,qsm/2,simple_qsm/1,simple_qsm/2,rei/1]).
 -import(bluefringe_merge,[merge/3,number_of_merges/3]).
 
 dot({Positive,Negative}) ->
@@ -19,6 +19,11 @@ dot({Positive,Negative}) ->
 dot({Positive,Negative},Abstract) ->
   bluefringe_dot:visualize(qsm({Positive,Negative},Abstract)).
 
+simple_dot({Positive,Negative}) ->
+  simple_dot({Positive,Negative},fun(X) -> X end).
+
+simple_dot({Positive,Negative},Abstract) ->
+  bluefringe_dot:visualize(simple_qsm({Positive,Negative},Abstract)).
 
 %%====================================================================
 %% API
@@ -33,11 +38,15 @@ map(Map, {PT, NT}) ->
 	lists:map(fun (X) -> lists:map(Map, X) end, NT)}.
 
 qsm({PT, NT}, Map) ->
-  ComposedMap = fun(#titem{mod=Mod,func=Func,args=Args}) -> Map({Mod,Func,Args}) end,
-  Aut = bluefringe_apta:generateApta({PT, NT}, ComposedMap),
-  remove_floating_states(iterate_all({Aut, [Aut#fa.iSt]}, map(ComposedMap, {PT, NT}))).
-
+    ComposedMap = fun(#titem{mod=Mod,func=Func,args=Args}) -> Map({Mod,Func,Args}) end,
+    simple_qsm({PT, NT}, ComposedMap).
 qsm({PT, NT}) -> qsm({PT, NT}, fun (X) -> X end).
+
+simple_qsm({PT, NT}, Map) -> 
+    Aut = bluefringe_apta:generateApta({PT, NT}, Map),
+    remove_floating_states(iterate_all({Aut, [Aut#fa.iSt]}, map(Map, {PT, NT}))).
+simple_qsm({PT, NT}) -> simple_qsm({PT, NT}, fun (X) -> X end).
+
 
 %%====================================================================
 %% API
