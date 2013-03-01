@@ -26,7 +26,7 @@ There is one example, in the examples directory. We use this in our explanation
    bluefringe:dot({Pos,Neg}).
 
 - Create a QuickCheck template with:
-   bluefringe_fsm:eqc_fsm(bluefringe:qsm({Pos,Neg}),frequency).
+   bluefringe_fsm:eqc_fsm(bluefringe:qsm({Pos,Neg}), frequency, Tree).
 
 The tracing is defined in the function eunit_tracing:t/1. If you happen to have other tracing running during EUnit execution, then you need to modify this function to makes sure our implementation gets the right trace data. Having additional events is no problem, you can filter them by providing an abstraction function.
 
